@@ -1,0 +1,44 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/direwen/go-server/internal/config"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/lpernett/godotenv"
+)
+
+func main() {
+
+	// Load env variables
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found.")
+	}
+
+	config.ConnectDB()
+
+	// Init Echo
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	if os.Getenv("LOCAL_FRONTEND_PORT") == "" {
+		log.Fatal("LOCAL_FRONTEND_PORT is not set")
+	}
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
+		},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
+
+	if os.Getenv("SERVER_PORT") == "" {
+		log.Fatal("SERVER_PORT is not set")
+	}
+
+	e.Logger.Fatal(e.Start(os.Getenv("SERVER_PORT")))
+}
