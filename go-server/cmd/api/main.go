@@ -23,6 +23,11 @@ func main() {
 		log.Println("Warning: No .env file found.")
 	}
 
+	// Ensure JWT Secret is set
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Fatal("JWT_SECRET is not set")
+	}
+
 	config.ConnectDB()
 	db := config.GetDB()
 

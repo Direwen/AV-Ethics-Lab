@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -12,9 +11,6 @@ import (
 
 func JWTMiddleware() echo.MiddlewareFunc {
 	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		log.Fatal("JWT_SECRET is not set")
-	}
 
 	config := echojwt.Config{
 		SigningKey: []byte(secret),
