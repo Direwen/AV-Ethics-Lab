@@ -6,6 +6,10 @@ import (
 	"os"
 
 	"github.com/direwen/go-server/internal/config"
+	"github.com/direwen/go-server/internal/handler"
+	custommw "github.com/direwen/go-server/internal/middleware"
+	"github.com/direwen/go-server/internal/repository"
+	"github.com/direwen/go-server/internal/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/lpernett/godotenv"
@@ -19,11 +23,24 @@ func main() {
 	}
 
 	config.ConnectDB()
+	db := config.GetDB()
+
+	// Dependency Injection Chain
+	sessionRepo := repository.NewSessionRepository(db)
+	sessionService := service.NewSessionService(sessionRepo)
+	sessionHandler := handler.NewSessionHandler(sessionService)
 
 	// Init Echo
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.POST("/api/v1/sessions", sessionHandler.Create)
+
+	protected := e.Group("api/v1")
+	protected.Use(custommw.JWTMiddleware())
+	{
+
+	}
 
 	if os.Getenv("LOCAL_FRONTEND_PORT") == "" {
 		log.Fatal("LOCAL_FRONTEND_PORT is not set")

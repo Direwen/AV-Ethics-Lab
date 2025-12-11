@@ -1,6 +1,7 @@
 package util
 
 import (
+	"log"
 	"os"
 	"time"
 
@@ -11,7 +12,7 @@ func GenerateToken(id string, extraClaims ...map[string]any) (string, error) {
 
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "secret"
+		log.Fatal("JWT_SECRET is not set")
 	}
 
 	token_expiration := os.Getenv("TOKEN_EXPIRATION")
