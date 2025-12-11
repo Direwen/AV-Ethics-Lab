@@ -5,6 +5,7 @@ import (
 
 	"github.com/direwen/go-server/internal/dto"
 	"github.com/direwen/go-server/internal/service"
+	"github.com/direwen/go-server/internal/util"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -24,19 +25,19 @@ func (h *SessionHandler) Create(c echo.Context) error {
 
 	// Bind request data to input
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+		return util.ErrorResponse(c, http.StatusBadRequest, "Invalid request payload", err)
 	}
 
 	// Validate struct defined fields with validate tags
 	if err := validate.Struct(input); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return util.ErrorResponse(c, http.StatusBadRequest, "Validation failed", err)
 	}
 
 	// register the session
 	token, err := h.service.RegisterSession(c.Request().Context(), input)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return util.ErrorResponse(c, http.StatusInternalServerError, "Failed to create session", err)
 	}
 
-	return c.JSON(http.StatusCreated, map[string]string{"token": token})
+	return util.SuccessResponse(c, http.StatusCreated, "Session created successfully", map[string]string{"token": token})
 }

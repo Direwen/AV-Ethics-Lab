@@ -10,6 +10,7 @@ import (
 	custommw "github.com/direwen/go-server/internal/middleware"
 	"github.com/direwen/go-server/internal/repository"
 	"github.com/direwen/go-server/internal/service"
+	"github.com/direwen/go-server/internal/util"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/lpernett/godotenv"
@@ -34,7 +35,10 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.POST("/api/v1/sessions", sessionHandler.Create)
+
+	e.HTTPErrorHandler = util.CustomEchoErrorHandler
+
+	e.POST("api/v1/sessions", sessionHandler.Create)
 
 	protected := e.Group("api/v1")
 	protected.Use(custommw.JWTMiddleware())
