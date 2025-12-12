@@ -1,6 +1,16 @@
 <template>
-    <Board></Board>
+
+    <div>
+        <MazBtn @click="toggleDarkMode">
+            Toggle dark mode ({{ isDark ? '🌙' : '☀️' }})
+        </MazBtn>
+        <MazBtn @click="toast.error('whahah')">
+            Toast
+        </MazBtn>
+    </div>
 </template>
 
 <script setup>
-import Board from "../components/board.vue";</script>
+const { toggleDarkMode, isDark } = useMazTheme()
+const toast = useMazToast()
+</script>
