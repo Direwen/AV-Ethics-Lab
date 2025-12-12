@@ -59,7 +59,7 @@ func main() {
 		AllowOrigins: []string{
 			fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
 		},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
 	if os.Getenv("SERVER_PORT") == "" {

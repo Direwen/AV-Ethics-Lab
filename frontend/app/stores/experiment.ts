@@ -23,7 +23,7 @@ export const useExperimentStore = defineStore('experiment', () => {
     async function createSession(demographics: Demographic, selfReportedNew: boolean) {
         isLoading.value = true
         try {
-            const response = await $api<ApiResponse<CreateSessionResponse>>('', {
+            const response = await $api<ApiResponse<CreateSessionResponse>>('/api/v1/sessions', {
                 method: 'POST',
                 body: {
                     demographics,
