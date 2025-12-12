@@ -1,37 +1,70 @@
 import tailwindcss from "@tailwindcss/vite";
 
 const mazUiConfig = {
-  // General Settings
   general: {
-    autoImportPrefix: 'Maz', // useMazToast instead of useToast
-    defaultMazIconPath: '/icons', // Default path for <MazIcon />
-    devtools: true, // Enable DevTools integration
+    autoImportPrefix: 'Maz',
+    defaultMazIconPath: '/icons',
+    devtools: true,
   },
 
-  // CSS & Styling
   css: {
-    injectMainCss: true, // Auto-inject Maz-UI styles
+    injectMainCss: true,
   },
 
-  // Theming System
   theme: {
-    preset: 'maz-ui', // 'maz-ui' | 'dark' | 'ocean' | custom object
-    strategy: 'hybrid', // 'runtime' | 'buildtime' | 'hybrid'
-    darkModeStrategy: 'class', // 'class' | 'media' | 'auto'
-    mode: 'both', // 'light' | 'dark' | 'both'
+    preset: 'maz-ui',
+    strategy: 'hybrid',
+    darkModeStrategy: 'class',
+    mode: 'both',
     colorMode: 'auto',
+    overrides: {
+      fontFamily: {
+        base: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        title: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      },
+
+      colors: {
+        // Dark: Sensor/simulation dashboard aesthetic
+        dark: {
+          primary: '189 94% 43%',    // Cyan-500
+          secondary: '215 28% 17%',  // Slate-800
+          background: '222 47% 5%',  // Slate-950
+          foreground: '210 40% 96%', // Slate-100
+          success: '158 64% 52%',    // Emerald-500
+          warning: '45 93% 47%',     // Amber-500
+          danger: '0 84% 60%',       // Red-500
+          info: '217 91% 60%',       // Blue-500
+        },
+
+        // Light: Clean research/report aesthetic
+        light: {
+          primary: '221 83% 53%',    // Blue-600
+          secondary: '210 40% 96%',  // Slate-100
+          background: '0 0% 100%',   // White
+          foreground: '222 47% 11%', // Slate-900
+          success: '161 94% 30%',    // Emerald-700
+          warning: '37 91% 40%',     // Amber-600
+          danger: '0 72% 51%',       // Red-600
+          info: '221 83% 53%',       // Blue-600
+        },
+      },
+
+      borderRadius: {
+        DEFAULT: '0.375rem', // 6px
+        lg: '0.5rem',        // 8px
+        xl: '0.75rem',       // 12px
+      },
+    },
   },
 
-  // Components
   components: {
-    autoImport: true, // All components globally available
+    autoImport: true,
   },
 
   composables: {
-      useToast: true,
+    useToast: true,
   },
 
-  // Plugins (not enabled by default)
   plugins: {
     aos: true,
     dialog: true,
@@ -39,7 +72,6 @@ const mazUiConfig = {
     wait: true,
   },
 
-  // Directives (not enabled by default)
   directives: {
     vTooltip: true,
     vClickOutside: true,
