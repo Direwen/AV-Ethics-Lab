@@ -56,6 +56,8 @@ func ConnectDB() {
 	err = DB.AutoMigrate(
 		&model.ContextTemplate{},
 		&model.Scenario{},
+		&model.Session{},
+		&model.Response{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database")

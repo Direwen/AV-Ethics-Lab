@@ -1,4 +1,36 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-    themes: corporate --default, business --prefersdark;
+
+@theme {
+    /* Maz-UI color bindings */
+    --color-primary: hsl(var(--maz-color-primary)); 
+    --color-primary-600: hsl(var(--maz-color-primary-600)); 
+    --color-secondary: hsl(var(--maz-color-secondary));    
+    --color-background: hsl(var(--maz-color-bg));   
+    --color-foreground: hsl(var(--maz-color-text));   
+
+    /* Status colors */
+    --color-success: hsl(var(--maz-color-success));
+    --color-warning: hsl(var(--maz-color-warning));
+    --color-danger: hsl(var(--maz-color-danger));
+    --color-info: hsl(var(--maz-color-info));
+
+    /* Gradients */
+    --image-sensor-gradient: linear-gradient(to right, var(--color-primary), var(--color-info));
+    --image-grid-highlight: linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary), transparent 80%), color-mix(in srgb, var(--color-info), transparent 80%));
+}
+
+:root {
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+}
+
+html {
+    font-size: var(--maz-base-font-size);
+    font-family: var(--maz-font-family);
+    background-color: hsl(var(--maz-background));
+    color: hsl(var(--maz-foreground));
 }
