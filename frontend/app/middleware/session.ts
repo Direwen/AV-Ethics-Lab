@@ -1,7 +1,7 @@
 export default defineNuxtRouteMiddleware((to, from) => {
     const token = useCookie('token')
     const protectedRoutes = ['/experiment', '/feedback']
-    const guestRoutes = ['/', '/auth/consent']
+    const guestRoutes = ['/', '/experiment/consent']
 
     // If trying to access protected route WITHOUT token, redirect to home
     if (protectedRoutes.includes(to.path) && !token.value) {
