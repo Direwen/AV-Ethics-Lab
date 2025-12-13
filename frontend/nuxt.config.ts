@@ -29,6 +29,7 @@ const mazUiConfig = {
           primary: '189 94% 43%',    // Cyan-500
           secondary: '215 28% 17%',  // Slate-800
           background: '222 47% 5%',  // Slate-950
+          'background-accent': '195 70% 15%', // Dark with stronger cyan glow
           foreground: '210 40% 96%', // Slate-100
           success: '158 64% 52%',    // Emerald-500
           warning: '45 93% 47%',     // Amber-500
@@ -41,6 +42,7 @@ const mazUiConfig = {
           primary: '221 83% 53%',    // Blue-600
           secondary: '210 40% 96%',  // Slate-100
           background: '0 0% 100%',   // White
+          'background-accent': '221 80% 92%', // White with stronger blue tint
           foreground: '222 47% 11%', // Slate-900
           success: '161 94% 30%',    // Emerald-700
           warning: '37 91% 40%',     // Amber-600
