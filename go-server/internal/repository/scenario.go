@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/direwen/go-server/internal/model"
 	"gorm.io/gorm"
@@ -29,6 +30,10 @@ func (r *scenarioRepository) GetLatestUnanswered(ctx context.Context, sessionID 
 		First(&scenario).Error
 
 	if err != nil {
+		// No unanswered scenario, not an error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
