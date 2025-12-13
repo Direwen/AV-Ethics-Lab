@@ -36,6 +36,10 @@ func main() {
 	sessionService := service.NewSessionService(sessionRepo)
 	sessionHandler := handler.NewSessionHandler(sessionService)
 
+	scenarioRepository := repository.NewScenarioRepository(db)
+	scenarioService := service.NewScenarioService(scenarioRepository)
+	scenarioHandler := handler.NewScenarioHandler(scenarioService)
+
 	// Init Echo
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -45,10 +49,10 @@ func main() {
 
 	e.POST("api/v1/sessions", sessionHandler.Create)
 
-	protected := e.Group("api/v1")
+	protected := e.Group("/api/v1")
 	protected.Use(custommw.JWTMiddleware())
 	{
-
+		protected.GET("/scenarios/next", scenarioHandler.GetNext)
 	}
 
 	if os.Getenv("LOCAL_FRONTEND_PORT") == "" {
