@@ -9,6 +9,8 @@ type Scenario struct {
 	BaseModel
 	ContextTemplateID  uuid.UUID       `gorm:"type:uuid;not null" json:"context_template_id"`
 	ContextTemplate    ContextTemplate `gorm:"foreignKey:ContextTemplateID" json:"context_template"`
+	SessionID          uuid.UUID       `gorm:"type:uuid;not null" json:"session_id"`
+	Session            Session         `gorm:"foreignKey:SessionID" json:"session"`
 	EntityPlacements   datatypes.JSON  `gorm:"type:jsonb" json:"entity_placements"`
 	EnvironmentFactors datatypes.JSON  `gorm:"type:jsonb" json:"environment_factors"`
 }
