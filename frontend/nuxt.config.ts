@@ -29,6 +29,7 @@ const mazUiConfig = {
         dark: {
           primary: '189 94% 43%',    // Cyan-500
           secondary: '215 28% 17%',  // Slate-800
+          accent: '45 93% 58%',      // Amber-400 (warm contrast to cyan)
           background: '222 47% 5%',  // Slate-950
           'background-accent': '195 70% 15%', // Dark with stronger cyan glow
           foreground: '210 40% 96%', // Slate-100
@@ -42,6 +43,7 @@ const mazUiConfig = {
         light: {
           primary: '221 83% 53%',    // Blue-600
           secondary: '210 40% 96%',  // Slate-100
+          accent: '262 83% 58%',     // Violet-500 (energetic complement to blue)
           background: '0 0% 100%',   // White
           'background-accent': '221 80% 92%', // White with stronger blue tint
           foreground: '222 47% 11%', // Slate-900

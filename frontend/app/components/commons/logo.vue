@@ -1,16 +1,14 @@
 <template>
     <div 
         class="flex items-center justify-center transition-all duration-300 ease-out 
-                bg-gradient-to-bl
-                from-[hsl(var(--maz-primary))]
-                to-[hsl(var(--maz-background-accent))]
+                custom-background-gradient
                 text-[hsl(var(--maz-foreground))]
                 cursor-pointer 
                 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5"
         :class="containerSize[size]"
     >
         <MazSquares2x2 
-        class="text-[hsl(var(--maz-foreground))] drop-shadow-sm" 
+        class="text-white drop-shadow-sm" 
         :class="iconSize[size]"
         />
     </div>

@@ -36,3 +36,7 @@ html {
     background-color: hsl(var(--maz-background));
     color: hsl(var(--maz-foreground));
 }
+
+.custom-background-gradient{
+    @apply bg-gradient-to-br from-[hsl(var(--maz-primary))] to-[hsl(var(--maz-accent))]
+}

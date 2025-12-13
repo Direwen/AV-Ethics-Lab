@@ -14,12 +14,6 @@
         </NuxtLink>
 
         <nav class="hidden md:flex items-center gap-6">
-            <a href="#about" class="text-sm font-medium hover:text-[hsl(var(--maz-primary))] transition-colors">
-            About the Study
-            </a>
-            <a href="#privacy" class="text-sm font-medium hover:text-[hsl(var(--maz-primary))] transition-colors">
-            Privacy
-            </a>
             
             <div class="flex items-center gap-2">
                 <MazSwitch
@@ -33,8 +27,7 @@
             <NuxtLink to="/auth/consent">
             <MazBtn 
                 size="sm" 
-                color="primary" 
-                class="rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
+                class="custom-background-gradient rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
             >
                 Get Started
             </MazBtn>
@@ -52,15 +45,31 @@
     </main>
 
     <footer class="border-t border-[hsl(var(--maz-border))] py-8 mt-auto">
-        <div class="container mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[hsl(var(--maz-muted))]">
-        <div class="flex items-center gap-2">
-            <span class="opacity-70">&copy; {{ new Date().getFullYear() }} University Research Dept.</span>
-        </div>
-        
-        <div class="flex items-center gap-6">
-            <a href="#" class="hover:text-[hsl(var(--maz-primary))]">Contact Supervisor</a>
-            <a href="#" class="hover:text-[hsl(var(--maz-primary))]">IRB Protocol #2024-AV-001</a>
-        </div>
+        <div
+            class="container mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[hsl(var(--maz-muted))]"
+        >
+            <div class="flex flex-col md:flex-row items-center gap-2 text-center md:text-left">
+                <span class="opacity-70">
+                    &copy; {{ new Date().getFullYear() }} Min Sik Hein
+                </span>
+                <span class="hidden md:inline opacity-30">|</span>
+                <span class="opacity-70">University of Sunderland</span>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                <a
+                    href="mailto:myomyothannaing.1983@gmail.com"
+                    class="hover:text-[hsl(var(--maz-primary))] transition-colors"
+                >
+                    Supervisor: Dr. Myo Myo Than Naing
+                </a>
+                
+                <span class="hidden md:inline opacity-30">|</span>
+                
+                <span class="opacity-70" title="Computing Project">
+                    Module: CET300
+                </span>
+            </div>
         </div>
     </footer>
 
