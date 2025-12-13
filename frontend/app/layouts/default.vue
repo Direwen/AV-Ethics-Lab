@@ -7,7 +7,7 @@
         <div class="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         
         <NuxtLink to="/" class="flex items-center gap-3 group">
-            <Logo size="sm" />
+            <Logo size="md" />
             <span class="text-lg font-semibold tracking-tight group-hover:text-[hsl(var(--maz-primary))] transition-colors">
             AV Ethics Lab
             </span>
@@ -20,6 +20,15 @@
             <a href="#privacy" class="text-sm font-medium hover:text-[hsl(var(--maz-primary))] transition-colors">
             Privacy
             </a>
+            
+            <div class="flex items-center gap-2">
+                <MazSwitch
+                    v-model="isDarkMode"
+                    name="theme-toggle"
+                    color="primary"
+                    @update:model-value="toggleTheme"
+                />
+            </div>
             
             <NuxtLink to="/auth/consent">
             <MazBtn 
@@ -59,5 +68,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import Logo from '~/components/commons/logo.vue';
+import { useTheme } from '@maz-ui/themes';
+
+const { colorMode, setColorMode } = useTheme();
+const isDarkMode = ref(colorMode.value === 'dark');
+
+const toggleTheme = (value: boolean) => {
+    setColorMode(value ? 'dark' : 'light');
+};
 </script>

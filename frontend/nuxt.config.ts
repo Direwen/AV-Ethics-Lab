@@ -16,7 +16,8 @@ const mazUiConfig = {
     strategy: 'hybrid',
     darkModeStrategy: 'class',
     mode: 'both',
-    colorMode: 'auto',
+    defaultMode: 'dark',
+    colorMode: 'manual',
     overrides: {
       fontFamily: {
         base: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
