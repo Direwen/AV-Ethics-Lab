@@ -24,7 +24,10 @@ func (r *scenarioRepository) GetLatestUnanswered(ctx context.Context, sessionID 
 	var scenario model.Scenario
 
 	err := r.db.WithContext(ctx).
-		Joins("LEFT JOIN responses ON scenarios.id = responses.scenario_id AND responses.session_id = ?", sessionID).
+		Table("scenarios").
+		Select("scenarios.*").
+		Joins("LEFT JOIN responses ON responses.scenario_id = scenarios.id").
+		Where("scenarios.session_id = ?", sessionID).
 		Where("responses.id IS NULL").
 		Order("scenarios.created_at DESC").
 		First(&scenario).Error
