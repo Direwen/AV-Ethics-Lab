@@ -1,0 +1,37 @@
+@startuml
+skinparam rectangle {
+  BackgroundColor<<guest>> LightBlue
+  BackgroundColor<<protected>> LightGreen
+  BackgroundColor<<public>> White
+}
+
+title Frontend Site Map
+
+rectangle "/ (Home)" <<guest>> as home
+rectangle "/about" <<public>> as about
+rectangle "/feedback" <<protected>> as feedback
+
+package "/experiment" {
+  rectangle "/experiment (Index)" <<protected>> as experiment
+  rectangle "/experiment/consent" <<guest>> as consent
+}
+
+home --> consent : Start Flow
+consent --> experiment : After Token
+experiment --> feedback : Complete
+
+note right of home
+  Guest Routes (redirect to /experiment if token exists)
+end note
+
+note right of experiment
+  Protected Routes (redirect to / if no token)
+end note
+
+legend left
+  |= Color |= Access |
+  | <#LightBlue> | Guest Only (no token) |
+  | <#LightGreen> | Protected (requires token) |
+  | <#White> | Public |
+endlegend
+@enduml
