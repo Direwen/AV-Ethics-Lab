@@ -62,13 +62,10 @@
                         </h2>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <MazInput
-                                v-model="form.age"
-                                type="number"
-                                label="Age"
-                                placeholder="18-99"
-                                min="18"
-                                max="99"
+                            <MazSelect
+                                v-model="form.age_range"
+                                label="Age Range"
+                                :options="ageRangeOptions"
                                 required
                             />
                             <MazSelect
@@ -180,11 +177,20 @@ const router = useRouter()
 countries.registerLocale(enLocale)
 
 // --- Static Options ---
+const ageRangeOptions = [
+    { label: '18-24', value: 1 },
+    { label: '25-34', value: 2 },
+    { label: '35-44', value: 3 },
+    { label: '45-54', value: 4 },
+    { label: '55-64', value: 5 },
+    { label: '65+', value: 6 }
+]
+
 const genderOptions = [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' },
-    { label: 'Non-binary / Third gender', value: 'non_binary' },
-    { label: 'Prefer not to say', value: 'prefer_not_say' }
+    { label: 'Male', value: 1 },
+    { label: 'Female', value: 2 },
+    { label: 'Non-binary / Third gender', value: 3 },
+    { label: 'Prefer not to say', value: 4 }
 ]
 
 const occupationOptions = [
@@ -196,18 +202,18 @@ const occupationOptions = [
 ]
 
 const drivingOptions = [
-    { label: 'Yes, I hold a license', value: 'licensed' },
-    { label: 'No, I do not drive', value: 'none' },
-    { label: 'I am learning', value: 'learner' }
+    { label: 'Yes, I hold a license', value: 1 },
+    { label: 'No, I do not drive', value: 2 },
+    { label: 'I am learning', value: 3 }
 ]
 
 // --- Reactive State ---
 const form = reactive({
-    age: undefined as number | undefined,
-    gender: undefined as string | undefined,
+    age_range: undefined as number | undefined,
+    gender: undefined as number | undefined,
     country: undefined as string | undefined,
     occupation: undefined as string | undefined,
-    driving_experience: undefined as string | undefined,
+    driving_experience: undefined as number | undefined,
     has_participated: false,
     consent: false
 })
@@ -222,7 +228,7 @@ const countryOptions = computed(() => {
 
 const isValid = computed(() => {
     return (
-        form.age && form.age >= 18 &&
+        form.age_range &&
         form.gender &&
         form.country &&
         form.occupation &&
@@ -237,7 +243,7 @@ async function handleStart() {
 
     await store.createSession(
         {
-            age: form.age,
+            age_range: form.age_range,
             gender: form.gender,
             country: form.country,
             occupation: form.occupation,
