@@ -40,3 +40,19 @@ html {
 .custom-background-gradient{
     @apply bg-gradient-to-br from-[hsl(var(--maz-primary))] to-[hsl(var(--maz-accent))]
 }
+
+.crosswalk-v {
+    background: repeating-linear-gradient(
+        90deg,
+        white 0px, white 4px,
+        #374151 4px, #374151 8px
+    );
+}
+
+.crosswalk-h {
+    background: repeating-linear-gradient(
+        0deg,
+        white 0px, white 4px,
+        #374151 4px, #374151 8px
+    );
+}

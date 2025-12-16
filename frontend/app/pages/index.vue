@@ -45,7 +45,7 @@
                     </MazBtn>
                 </NuxtLink>
 
-                <NuxtLink to="/about">
+                <NuxtLink to="/test">
                     <MazBtn
                         pastel
                         color="background"
