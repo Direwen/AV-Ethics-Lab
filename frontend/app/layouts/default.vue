@@ -72,6 +72,6 @@
 </template>
 
 <script setup lang="ts">
-import Logo from '~/components/commons/logo.vue';
-import ThemeToggle from '~/components/commons/theme_toggle.vue';
+import Logo from '~/components/commons/Logo.vue';
+import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>

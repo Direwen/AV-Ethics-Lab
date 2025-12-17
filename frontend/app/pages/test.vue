@@ -4,6 +4,6 @@
 
 <script setup lang="ts">
 
-import Board2 from '~/components/samples/board1.vue';
+import Board2 from '~/components/samples/Board1.vue';
 
 </script>

@@ -1,5 +1,5 @@
 import { CELL_DEFINITIONS } from '~/constants/mapDefinitions'
-import type { CellDefinition } from '~/components/simulation/cell.vue'
+import type { CellDefinition } from '~/components/simulation/Cell.vue'
 
 export function useCellDefinition() {
     const getCellDefinition = (code: number | string): CellDefinition => {

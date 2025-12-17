@@ -56,3 +56,19 @@ html {
         #374151 4px, #374151 8px
     );
 }
+
+.yellow-dash-line-h {
+    background-color: #1f2937;
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 8px,
+        #facc15 8px,
+        #facc15 16px,
+        transparent 16px,
+        transparent 24px
+    );
+    background-size: 24px 4px;
+    background-position: center;
+    background-repeat: repeat-x;
+}

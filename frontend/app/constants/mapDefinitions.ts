@@ -18,7 +18,7 @@ export const CELL_DEFINITIONS: Record<string, { name: string; class: string }> =
     "11": { name: "Intersection Box", class: "bg-gray-800" },
 
     // ROAD MARKINGS
-    "12": { name: "White Line Dash", class: "bg-white h-2 my-auto w-full" },
+    "12": { name: "Yellow Line Dash", class: "yellow-dash-line-h" },
     "13": { name: "Double Yellow Horizontal", class: "bg-gray-800 border-y-2 border-yellow-400" },
     "14": { name: "Double Yellow Vertical", class: "bg-gray-800 border-x-2 border-yellow-400" },
 

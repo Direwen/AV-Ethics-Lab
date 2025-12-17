@@ -42,5 +42,5 @@
 
 <script setup lang="ts">
 import { MazArrowSmallLeft } from '@maz-ui/icons'
-import ThemeToggle from '~/components/commons/theme_toggle.vue';
+import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>
