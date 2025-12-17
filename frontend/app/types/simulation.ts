@@ -1,14 +1,40 @@
+export interface Position {
+    row: number
+    col: number
+}
+
+export interface EntityMetadata {
+    name: string
+    // "none" | "low" | "medium" | "high" | "critical"
+    risk_level: string 
+    is_occluded: boolean
+    behavior?: string // e.g. "crossing_road", "waiting"
+    occluded_by?: string // ID of the entity hiding this one
+}
+
 export interface Entity {
     id: string
-    type: string
+    type: string // "child", "vehicle", "obstacle"
     emoji: string
-    position: {
-        row: number
-        col: number
-    }
-    metadata: {
+    position: Position
+    metadata: EntityMetadata
+}
+
+export interface ScenarioData {
+    scenario_id: string
+    template_meta: {
+        id: string
         name: string
-        risk_level: string
-        is_occluded: boolean
+        dimensions: { rows: number; cols: number }
     }
+    grid: number[][]
+    entities: Entity[]
+}
+
+// Visual Definition for the Static Grid (Roads, Sidewalks)
+export interface CellDefinition {
+    name?: string
+    class: string
+    allow: string[]
+    risk_factor?: string
 }

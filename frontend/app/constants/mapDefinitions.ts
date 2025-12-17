@@ -25,4 +25,11 @@ export const CELL_DEFINITIONS: Record<string, { name: string; class: string }> =
     // CROSSWALKS
     "15": { name: "Crosswalk Vertical", class: "crosswalk-v" },
     "16": { name: "Crosswalk Horizontal", class: "crosswalk-h" },
+
+    // SOLID YELLOW LINES
+    "17": { name: "Yellow Line Vertical", class: "yellow-line-v" },
+    "18": { name: "Yellow Line Horizontal", class: "yellow-line-h" },
+
+    "19": { name: "Sidewalk Left", class: "bg-gray-200 border-r-4 border-gray-300" },
+    "20": { name: "Sidewalk Right", class: "bg-gray-200 border-l-4 border-gray-300" },
 }

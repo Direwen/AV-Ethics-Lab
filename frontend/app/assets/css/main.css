@@ -72,3 +72,29 @@ html {
     background-position: center;
     background-repeat: repeat-x;
 }
+
+.yellow-line-v {
+    background-color: #1f2937;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 45%,
+        #facc15 45%,
+        #facc15 55%,
+        transparent 55%,
+        transparent 100%
+    );
+}
+
+.yellow-line-h {
+    background-color: #1f2937;
+    background-image: linear-gradient(
+        0deg,
+        transparent 0%,
+        transparent 45%,
+        #facc15 45%,
+        #facc15 55%,
+        transparent 55%,
+        transparent 100%
+    );
+}
