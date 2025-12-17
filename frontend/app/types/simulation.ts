@@ -30,8 +30,6 @@ export interface ScenarioData {
     grid: number[][]
     entities: Entity[]
 }
-
-// Visual Definition for the Static Grid (Roads, Sidewalks)
 export interface CellDefinition {
     name?: string
     class: string

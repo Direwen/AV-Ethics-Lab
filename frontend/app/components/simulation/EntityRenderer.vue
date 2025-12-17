@@ -27,18 +27,14 @@ import type { Entity } from '~/types/simulation'
 
 const props = defineProps<{
     entities: Entity[],
-    parentHover?: boolean // <--- Accept state from parent
+    parentHover?: boolean
 }>()
-
-// Remove local isHovered ref
-// Remove @mouseenter / @mouseleave
 
 function getStackStyles(index: number, total: number) {
     const zIndex = (index + 1) * 10
     
     if (total === 1) return { zIndex, transform: 'scale(1)' }
 
-    // Use props.parentHover instead of local value
     if (props.parentHover) {
         const offset = (index * 12) - ((total - 1) * 6)
         return {

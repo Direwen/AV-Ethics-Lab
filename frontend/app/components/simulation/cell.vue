@@ -5,7 +5,7 @@
         :class="[
             definition?.class, 
             isInteractive ? 'hover:brightness-110 cursor-pointer' : '',
-            showMenu ? 'ring-2 ring-cyan-400 z-50' : '' // Highlight when menu is open
+            showMenu ? 'ring-2 ring-cyan-400 z-50' : ''
         ]"
         :title="definition?.name" 
         role="gridcell"
@@ -63,7 +63,7 @@ import type { Entity } from '~/types/simulation'
 export interface CellDefinition {
     name?: string
     class: string
-    allow: string[]
+    allow?: string[]
     risk_factor?: string
 }
 
@@ -73,12 +73,12 @@ const props = defineProps<{
     entities?: Entity[]
 }>()
 
-const emit = defineEmits(['cell-click', 'entity-select']) // Added entity-select
-const isHovered = ref(false) // <--- Track state here
+const emit = defineEmits(['cell-click', 'entity-select'])
+const isHovered = ref(false)
 const showMenu = ref(false)
 
 const isInteractive = computed(() => {
-    return props.definition?.allow?.length > 0
+    return (props.definition?.allow?.length ?? 0) > 0
 })
 
 function handleClick() {
