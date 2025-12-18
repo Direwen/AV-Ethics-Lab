@@ -7,10 +7,11 @@
             :key="entity.id"
             class="absolute transition-all duration-300 select-none text-base sm:text-lg md:text-xl lg:text-3xl"
             :style="getStackStyles(index, entities.length)"
-            :class="{ 
-                'opacity-50 grayscale': entity.metadata.is_occluded && !parentHover,
-                'z-50': parentHover 
-            }"
+            :class="[
+                entity.metadata.is_occluded && !parentHover ? 'opacity-50 grayscale' : '',
+                parentHover ? 'z-50' : '',
+                rankStore.isSelected(entity.id) ? 'ring-2 ring-cyan-400 rounded-full bg-cyan-400/20 scale-110' : ''
+            ]"
             :title="entity.metadata.name"
         >
             {{ entity.emoji }}
@@ -24,11 +25,15 @@
 
 <script setup lang="ts">
 import type { Entity } from '~/types/simulation'
+import { useRankStore } from '~/stores/rank'
 
 const props = defineProps<{
-    entities: Entity[],
-    parentHover?: boolean
+    entities: Entity[]
+    parentHover: boolean
+    hasSelected?: boolean
 }>()
+
+const rankStore = useRankStore()
 
 function getStackStyles(index: number, total: number) {
     const zIndex = (index + 1) * 10
@@ -36,7 +41,7 @@ function getStackStyles(index: number, total: number) {
     if (total === 1) return { zIndex, transform: 'scale(1)' }
 
     if (props.parentHover) {
-        const offset = (index * 12) - ((total - 1) * 6)
+        const offset = (index * 20) - ((total - 1) * 6)
         return {
             zIndex: 100 + index,
             transform: `translateX(${offset}px) scale(1.1)`

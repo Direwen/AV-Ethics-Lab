@@ -91,7 +91,7 @@ const schoolZoneData = {
     {
         id: "ent_child_hidden",
         type: "child",
-        emoji: "🫣",
+        emoji: "🧍",
         position: { row: 4, col: 10 }, // SAME COORDINATES
         metadata: {
             name: "Child (Occluded)",

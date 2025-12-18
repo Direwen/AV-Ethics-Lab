@@ -5,16 +5,15 @@ export interface Position {
 
 export interface EntityMetadata {
     name: string
-    // "none" | "low" | "medium" | "high" | "critical"
     risk_level: string 
     is_occluded: boolean
-    behavior?: string // e.g. "crossing_road", "waiting"
+    behavior?: string
     occluded_by?: string // ID of the entity hiding this one
 }
 
 export interface Entity {
     id: string
-    type: string // "child", "vehicle", "obstacle"
+    type: string
     emoji: string
     position: Position
     metadata: EntityMetadata
@@ -33,6 +32,5 @@ export interface ScenarioData {
 export interface CellDefinition {
     name?: string
     class: string
-    allow: string[]
-    risk_factor?: string
+    isInteractive: boolean
 }
