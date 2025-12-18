@@ -4,7 +4,8 @@
         class="relative w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-12 lg:h-12 flex items-center justify-center transition-all duration-30"
         :class="[
             definition?.class, 
-            isInteractive ? 'hover:brightness-110 cursor-pointer' : ''
+            isInteractive ? 'cursor-pointer' : '',
+            isHovered && entities?.length && entities.length > 1 ? 'overflow-visible z-50' : ''
         ]"
         :title="definition?.name" 
         role="gridcell"

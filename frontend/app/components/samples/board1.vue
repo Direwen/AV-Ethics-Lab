@@ -99,6 +99,28 @@ const schoolZoneData = {
             is_occluded: true // Should appear greyed out or behind
         }
     },
+    {
+        id: "ent_child_hidden1",
+        type: "child",
+        emoji: "🧍",
+        position: { row: 4, col: 10 }, // SAME COORDINATES
+        metadata: {
+            name: "Child (Occluded)",
+            risk_level: "critical",
+            is_occluded: true // Should appear greyed out or behind
+        }
+    },
+    {
+        id: "ent_child_hidden2",
+        type: "child",
+        emoji: "🧍",
+        position: { row: 4, col: 10 }, // SAME COORDINATES
+        metadata: {
+            name: "Child (Occluded)",
+            risk_level: "critical",
+            is_occluded: true // Should appear greyed out or behind
+        }
+    },
     // Case 3: Ego Vehicle (You)
     {
         id: "ent_ego",

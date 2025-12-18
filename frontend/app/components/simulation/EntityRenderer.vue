@@ -9,10 +9,11 @@
             :style="getStackStyles(index, entities.length)"
             :class="[
                 entity.metadata.is_occluded && !parentHover ? 'opacity-50 grayscale' : '',
-                parentHover ? 'z-50' : '',
-                rankStore.isSelected(entity.id) ? 'ring-2 ring-cyan-400 rounded-full bg-cyan-400/20 scale-110' : ''
+                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer hover:scale-125 z-50' : '',
+                rankStore.isSelected(entity.id) ? 'selected-glow scale-110' : ''
             ]"
             :title="entity.metadata.name"
+            @click.stop="handleEntityClick(entity)"
         >
             {{ entity.emoji }}
         </span>
@@ -35,16 +36,27 @@ const props = defineProps<{
 
 const rankStore = useRankStore()
 
+function handleEntityClick(entity: Entity) {
+    if (props.entities.length === 1) return // Let parent handle single entity
+    
+    if (rankStore.isSelected(entity.id)) {
+        rankStore.clearSelection()
+    } else {
+        rankStore.select(entity)
+    }
+}
+
 function getStackStyles(index: number, total: number) {
     const zIndex = (index + 1) * 10
     
     if (total === 1) return { zIndex, transform: 'scale(1)' }
 
     if (props.parentHover) {
-        const offset = (index * 20) - ((total - 1) * 6)
+        const spacing = 28
+        const offset = (index * spacing) - ((total - 1) * spacing / 2)
         return {
             zIndex: 100 + index,
-            transform: `translateX(${offset}px) scale(1.1)`
+            transform: `translateX(${offset}px) scale(1.15)`
         }
     }
 
@@ -55,3 +67,24 @@ function getStackStyles(index: number, total: number) {
     }
 }
 </script>
+
+<style scoped>
+.selected-glow {
+    background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    padding: 0.25rem;
+    animation: pulse-glow 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px hsl(var(--maz-primary) / 0.8));
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 10px hsl(var(--maz-primary) / 0.8));
+        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+    }
+    50% {
+        filter: drop-shadow(0 0 18px hsl(var(--maz-primary) / 1));
+        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.6) 0%, transparent 70%);
+    }
+}
+</style>
