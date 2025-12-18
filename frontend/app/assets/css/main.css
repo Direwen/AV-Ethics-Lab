@@ -5,7 +5,8 @@
     --color-primary: hsl(var(--maz-color-primary)); 
     --color-primary-600: hsl(var(--maz-color-primary-600)); 
     --color-secondary: hsl(var(--maz-color-secondary));    
-    --color-background: hsl(var(--maz-color-bg));   
+    --color-background: hsl(var(--maz-color-bg));
+    --color-background-accent: hsl(var(--maz-color-background-accent));
     --color-foreground: hsl(var(--maz-color-text));   
 
     /* Status colors */
@@ -17,6 +18,7 @@
     /* Gradients */
     --image-sensor-gradient: linear-gradient(to right, var(--color-primary), var(--color-info));
     --image-grid-highlight: linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary), transparent 80%), color-mix(in srgb, var(--color-info), transparent 80%));
+    --image-background-gradient: linear-gradient(to bottom right, var(--color-background), var(--color-background-accent));
 }
 
 :root {
@@ -24,7 +26,7 @@
 }
 
 body {
-    background-color: var(--color-background);
+    background: var(--image-background-gradient);
     color: var(--color-foreground);
 }
 
@@ -33,4 +35,66 @@ html {
     font-family: var(--maz-font-family);
     background-color: hsl(var(--maz-background));
     color: hsl(var(--maz-foreground));
+}
+
+.custom-background-gradient{
+    @apply bg-gradient-to-br from-[hsl(var(--maz-primary))] to-[hsl(var(--maz-accent))]
+}
+
+.crosswalk-v {
+    background: repeating-linear-gradient(
+        90deg,
+        white 0px, white 4px,
+        #374151 4px, #374151 8px
+    );
+}
+
+.crosswalk-h {
+    background: repeating-linear-gradient(
+        0deg,
+        white 0px, white 4px,
+        #374151 4px, #374151 8px
+    );
+}
+
+.yellow-dash-line-h {
+    background-color: #1f2937;
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 8px,
+        #facc15 8px,
+        #facc15 16px,
+        transparent 16px,
+        transparent 24px
+    );
+    background-size: 24px 4px;
+    background-position: center;
+    background-repeat: repeat-x;
+}
+
+.yellow-line-v {
+    background-color: #1f2937;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 45%,
+        #facc15 45%,
+        #facc15 55%,
+        transparent 55%,
+        transparent 100%
+    );
+}
+
+.yellow-line-h {
+    background-color: #1f2937;
+    background-image: linear-gradient(
+        0deg,
+        transparent 0%,
+        transparent 45%,
+        #facc15 45%,
+        #facc15 55%,
+        transparent 55%,
+        transparent 100%
+    );
 }

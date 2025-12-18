@@ -1,0 +1,56 @@
+@startuml ERD
+
+!define TABLE(x) entity x << (T,#FFAAAA) >>
+
+skinparam linetype ortho
+
+TABLE(sessions) {
+  * id : uuid <<PK>>
+  --
+  demographics : jsonb
+  fingerprint : varchar(255)
+  is_duplicate : boolean
+  self_reported_new : boolean
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
+TABLE(context_templates) {
+  * id : uuid <<PK>>
+  --
+  name : varchar
+  base_grid : jsonb
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
+TABLE(scenarios) {
+  * id : uuid <<PK>>
+  --
+  * context_template_id : uuid <<FK>>
+  * session_id : uuid <<FK>>
+  entity_placements : jsonb
+  environment_factors : jsonb
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
+TABLE(responses) {
+  * id : uuid <<PK>>
+  --
+  * scenario_id : uuid <<FK>>
+  ranking_order : jsonb
+  reaction_time : bigint
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
+sessions ||--o{ scenarios : "has many"
+context_templates ||--o{ scenarios : "has many"
+scenarios ||--o| responses : "has one"
+
+@enduml

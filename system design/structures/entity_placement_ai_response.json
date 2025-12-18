@@ -1,0 +1,11 @@
+[
+    { 
+        "id": "ent_0",              
+        "type": "child",            
+        "pos": [3, 8],              
+        "meta": {
+            "behavior": "running",
+            "occluded": false
+        }
+    }
+]
