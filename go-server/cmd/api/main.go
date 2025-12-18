@@ -6,11 +6,10 @@ import (
 	"os"
 
 	"github.com/direwen/go-server/internal/config"
-	"github.com/direwen/go-server/internal/handler"
 	custommw "github.com/direwen/go-server/internal/middleware"
-	"github.com/direwen/go-server/internal/repository"
-	"github.com/direwen/go-server/internal/seed"
-	"github.com/direwen/go-server/internal/service"
+	"github.com/direwen/go-server/internal/scenario"
+	"github.com/direwen/go-server/internal/session"
+	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,13 +17,10 @@ import (
 )
 
 func main() {
-
-	// Load env variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found.")
 	}
 
-	// Ensure JWT Secret is set
 	if os.Getenv("JWT_SECRET") == "" {
 		log.Fatal("JWT_SECRET is not set")
 	}
@@ -32,19 +28,21 @@ func main() {
 	config.ConnectDB()
 	db := config.GetDB()
 
-	// Dependency Injection Chain
-	sessionRepo := repository.NewSessionRepository(db)
-	sessionService := service.NewSessionService(sessionRepo)
-	sessionHandler := handler.NewSessionHandler(sessionService)
+	// Session
+	sessionRepo := session.NewRepository(db)
+	sessionService := session.NewService(sessionRepo)
+	sessionHandler := session.NewHandler(sessionService)
 
-	scenarioRepository := repository.NewScenarioRepository(db)
-	scenarioService := service.NewScenarioService(scenarioRepository)
-	scenarioHandler := handler.NewScenarioHandler(scenarioService)
+	// Scenario
+	scenarioRepo := scenario.NewRepository(db)
+	scenarioService := scenario.NewService(scenarioRepo)
+	scenarioHandler := scenario.NewHandler(scenarioService)
 
-	templateRepository := repository.NewTemplateRepository(db)
+	// Template
+	templateRepo := template.NewRepository(db)
 
 	// Seed Templates
-	if err := seed.SeedContextTemplates(templateRepository); err != nil {
+	if err := template.SeedContextTemplates(templateRepo); err != nil {
 		log.Fatal("Failed to seed templates: ", err)
 	}
 

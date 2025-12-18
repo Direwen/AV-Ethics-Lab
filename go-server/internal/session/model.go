@@ -1,4 +1,8 @@
-package model
+package session
+
+import (
+	"github.com/direwen/go-server/internal/shared/model"
+)
 
 // Age range codes
 const (
@@ -26,7 +30,7 @@ const (
 )
 
 type Session struct {
-	BaseModel
+	model.BaseModel
 	// For the Unique Anonymity Protocol
 	Fingerprint     string `gorm:"type:varchar(255)" json:"fingerprint"`
 	IsDuplicate     bool   `gorm:"type:boolean;default:true" json:"is_duplicate"`

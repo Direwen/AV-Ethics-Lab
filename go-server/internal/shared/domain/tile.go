@@ -1,10 +1,11 @@
 package domain
 
-import (
-	"github.com/direwen/go-server/internal/dto"
-)
+type Tile struct {
+	Name          string
+	IsInteractive bool
+}
 
-var TileRegistry = map[int]dto.Tile{
+var TileRegistry = map[int]Tile{
 	// BUILDINGS
 	0: {Name: "Roof", IsInteractive: false},
 	1: {Name: "Building Edge Top", IsInteractive: false},

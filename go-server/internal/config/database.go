@@ -6,7 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/direwen/go-server/internal/model"
+	"github.com/direwen/go-server/internal/response"
+	"github.com/direwen/go-server/internal/scenario"
+	"github.com/direwen/go-server/internal/session"
+	"github.com/direwen/go-server/internal/template"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,7 +23,6 @@ func GetDB() *gorm.DB {
 func ConnectDB() {
 	var dsn string
 
-	// Build dsn
 	if os.Getenv("DB_URL") != "" {
 		dsn = os.Getenv("DB_URL")
 	} else {
@@ -34,7 +36,6 @@ func ConnectDB() {
 		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", host, user, password, dbname, port, sslmode)
 	}
 
-	// Connect to database
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -46,18 +47,17 @@ func ConnectDB() {
 		log.Fatal("Failed to connect to Database")
 	}
 
-	sqlDB.SetMaxOpenConns(25)                 // max connections open at once
-	sqlDB.SetMaxIdleConns(10)                 // connections kept idle in pool
-	sqlDB.SetConnMaxLifetime(5 * time.Minute) // how long a connection can be reused
+	sqlDB.SetMaxOpenConns(25)
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 	log.Println("Connected to Database")
 
-	// Migrate Database
 	err = DB.AutoMigrate(
-		&model.ContextTemplate{},
-		&model.Scenario{},
-		&model.Session{},
-		&model.Response{},
+		&template.ContextTemplate{},
+		&scenario.Scenario{},
+		&session.Session{},
+		&response.Response{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database")

@@ -1,4 +1,4 @@
-package dto
+package session
 
 type CreateSessionInput struct {
 	AgeRange          int    `json:"age_range" validate:"required,min=1,max=6"`

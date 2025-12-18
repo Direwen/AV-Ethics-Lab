@@ -1,11 +1,12 @@
-package model
+package template
 
 import (
+	"github.com/direwen/go-server/internal/shared/model"
 	"gorm.io/datatypes"
 )
 
 type ContextTemplate struct {
-	BaseModel
+	model.BaseModel
 	Name     string         `gorm:"not null" json:"name"`
 	Width    int            `gorm:"type:int;not null" json:"width"`
 	Height   int            `gorm:"type:int;not null" json:"height"`

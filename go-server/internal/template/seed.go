@@ -1,15 +1,13 @@
-package seed
+package template
 
 import (
 	"context"
 	"log"
 
-	"github.com/direwen/go-server/internal/model"
-	"github.com/direwen/go-server/internal/repository"
 	"gorm.io/datatypes"
 )
 
-var templates = []model.ContextTemplate{
+var templates = []ContextTemplate{
 	{
 		Name:   "Urban School Zone (Straight)",
 		Width:  20,
@@ -69,7 +67,7 @@ var templates = []model.ContextTemplate{
 	},
 }
 
-func SeedContextTemplates(repo repository.TemplateRepository) error {
+func SeedContextTemplates(repo Repository) error {
 	ctx := context.Background()
 	for _, tpl := range templates {
 		if err := repo.FirstOrCreate(ctx, &tpl); err != nil {
