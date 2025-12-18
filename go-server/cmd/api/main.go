@@ -9,6 +9,7 @@ import (
 	"github.com/direwen/go-server/internal/handler"
 	custommw "github.com/direwen/go-server/internal/middleware"
 	"github.com/direwen/go-server/internal/repository"
+	"github.com/direwen/go-server/internal/seed"
 	"github.com/direwen/go-server/internal/service"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/labstack/echo/v4"
@@ -39,6 +40,13 @@ func main() {
 	scenarioRepository := repository.NewScenarioRepository(db)
 	scenarioService := service.NewScenarioService(scenarioRepository)
 	scenarioHandler := handler.NewScenarioHandler(scenarioService)
+
+	templateRepository := repository.NewTemplateRepository(db)
+
+	// Seed Templates
+	if err := seed.SeedContextTemplates(templateRepository); err != nil {
+		log.Fatal("Failed to seed templates: ", err)
+	}
 
 	// Init Echo
 	e := echo.New()

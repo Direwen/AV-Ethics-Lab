@@ -1,0 +1,25 @@
+Requirements in the prompt
+
+- Must Explain the Purpose of the App
+- Provide User Demographics (Requires confirmation if eligible)
+- Provide a list of arrays representing tile-based scenario context
+- The Context of those tile codes
+- Provide a list of defined entities
+
+What i need from the response back
+- Must be in a formatted structure
+- a list of objects
+[
+    { 
+        "type": "child_running",            
+        "pos": [3, 8],              
+        "meta": {
+            "behavior": "running",
+            "occluded": false
+        }
+    }
+]
+
+Before incorporating this response into the final struct, Must validate 
+- if an entity is valid
+- if an entity is placed at a non-interactive tile

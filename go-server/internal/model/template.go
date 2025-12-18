@@ -7,5 +7,8 @@ import (
 type ContextTemplate struct {
 	BaseModel
 	Name     string         `gorm:"not null" json:"name"`
-	BaseGrid datatypes.JSON `gorm:"type:jsonb" json:"base_grid"`
+	Width    int            `gorm:"type:int;not null" json:"width"`
+	Height   int            `gorm:"type:int;not null" json:"height"`
+	GridData datatypes.JSON `gorm:"type:jsonb;not null" json:"grid_data"`
+	Meta     datatypes.JSON `gorm:"type:jsonb" json:"meta"`
 }
