@@ -9,7 +9,7 @@
             :style="getStackStyles(index, entities.length)"
             :class="[
                 entity.metadata.is_occluded && !parentHover ? 'opacity-50 grayscale' : '',
-                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer hover:scale-125 z-50' : '',
+                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer hover:scale-110 z-50' : '',
                 rankStore.isSelected(entity.id) ? 'selected-glow scale-110' : ''
             ]"
             :title="entity.metadata.name"
