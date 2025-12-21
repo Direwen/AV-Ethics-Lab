@@ -41,6 +41,12 @@ func main() {
 	// Template
 	templateRepo := template.NewRepository(db)
 
+	// Init LLM Service
+	// llmClient, err := llm.NewClient(os.Getenv("LLM_MODEL"), llm.ProviderOllama)
+	// if err != nil {
+	// 	log.Fatal("Failed to create LLM client: ", err)
+	// }
+
 	// Seed Templates
 	if err := template.SeedContextTemplates(templateRepo); err != nil {
 		log.Fatal("Failed to seed templates: ", err)
