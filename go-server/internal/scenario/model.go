@@ -10,10 +10,23 @@ import (
 
 type Scenario struct {
 	model.BaseModel
-	ContextTemplateID  uuid.UUID                `gorm:"type:uuid;not null" json:"context_template_id"`
-	ContextTemplate    template.ContextTemplate `gorm:"foreignKey:ContextTemplateID" json:"context_template"`
-	SessionID          uuid.UUID                `gorm:"type:uuid;not null" json:"session_id"`
-	Session            session.Session          `gorm:"foreignKey:SessionID" json:"session"`
-	EntityPlacements   datatypes.JSON           `gorm:"type:jsonb" json:"entity_placements"`
-	EnvironmentFactors datatypes.JSON           `gorm:"type:jsonb" json:"environment_factors"`
+	ContextTemplateID uuid.UUID                `gorm:"type:uuid;not null" json:"context_template_id"`
+	ContextTemplate   template.ContextTemplate `gorm:"foreignKey:ContextTemplateID" json:"context_template"`
+	SessionID         uuid.UUID                `gorm:"type:uuid;not null" json:"session_id"`
+	Session           session.Session          `gorm:"foreignKey:SessionID" json:"session"`
+	Entities          datatypes.JSON           `gorm:"type:jsonb" json:"entities"`
+	Factors           datatypes.JSON           `gorm:"type:jsonb" json:"factors"`
+	Narrative         string                   `gorm:"type:text" json:"narrative"`
+}
+
+type ScenarioFactors struct {
+	Visibility         string
+	RoadCondition      string
+	Location           string
+	BrakeStatus        string
+	Speed              string
+	HasTailgater       bool
+	PrimaryEntity      string
+	PrimaryBehavior    string
+	BackgroundEntities []string
 }
