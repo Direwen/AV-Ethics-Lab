@@ -20,13 +20,13 @@ type Scenario struct {
 }
 
 type ScenarioFactors struct {
-	Visibility         string
-	RoadCondition      string
-	Location           string
-	BrakeStatus        string
-	Speed              string
-	HasTailgater       bool
-	PrimaryEntity      string
-	PrimaryBehavior    string
-	BackgroundEntities []string
+	Visibility         string   `json:"visibility"`
+	RoadCondition      string   `json:"road_condition"`
+	Location           string   `json:"location"`
+	BrakeStatus        string   `json:"brake_status"`
+	Speed              string   `json:"speed"`
+	HasTailgater       bool     `json:"has_tailgater"`
+	PrimaryEntity      string   `json:"primary_entity"`
+	PrimaryBehavior    string   `json:"primary_behavior"`
+	BackgroundEntities []string `json:"background_entities"`
 }

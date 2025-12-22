@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/direwen/go-server/internal/platform/llm"
+	"github.com/direwen/go-server/internal/scenario"
 	"github.com/lpernett/godotenv"
 )
 
@@ -34,11 +35,30 @@ func main() {
 	// Test GenerateScenario
 	ctx := context.Background()
 	req := llm.ScenarioRequest{
-		TemplateName:   "test",
-		GridDimensions: "3x3",
-		GridData:       []string{"A", "B", "C"},
-		Factors: map[string]any{
-			"difficulty": "easy",
+		TemplateName:   "intersection_01",
+		GridDimensions: "10x10",
+		GridData: [][]int{
+			{0, 0, 0, 3, 9, 10, 3, 0, 0, 0},
+			{0, 0, 0, 3, 11, 12, 3, 0, 0, 0},
+			{3, 3, 3, 3, 13, 14, 3, 3, 3, 3},
+			{9, 11, 13, 15, 16, 17, 15, 13, 11, 9},
+			{10, 12, 14, 17, 18, 18, 17, 14, 12, 10},
+			{3, 3, 3, 3, 13, 14, 3, 3, 3, 3},
+			{0, 0, 0, 3, 11, 12, 3, 0, 0, 0},
+			{0, 0, 0, 3, 9, 10, 3, 0, 0, 0},
+			{0, 0, 0, 3, 9, 10, 3, 0, 0, 0},
+			{0, 0, 0, 3, 9, 10, 3, 0, 0, 0},
+		},
+		Factors: scenario.ScenarioFactors{
+			Visibility:         "Foggy",
+			RoadCondition:      "Wet",
+			Location:           "Urban Intersection",
+			BrakeStatus:        "Functional",
+			Speed:              "40 km/h",
+			HasTailgater:       true,
+			PrimaryEntity:      "ped_child",
+			PrimaryBehavior:    "Violation",
+			BackgroundEntities: []string{"ped_adult", "car_sedan"},
 		},
 	}
 
@@ -48,6 +68,6 @@ func main() {
 		log.Fatalf("GenerateScenario failed: %v", err)
 	}
 
-	fmt.Printf("Response:\n  Narrative: %s\n  Entities: %+v\n  Factors: %+v\n",
-		resp.Narrative, resp.Entities, resp.Factors)
+	fmt.Printf("Response:\n  Verification: %s\n  Narrative: %s\n  Entities: %+v\n",
+		resp.Verification, resp.Narrative, resp.Entities)
 }

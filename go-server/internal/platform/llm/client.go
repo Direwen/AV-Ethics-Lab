@@ -5,7 +5,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -17,6 +19,21 @@ var systemPromptSrc string
 
 //go:embed prompts/template.md
 var promptTemplateSrc string
+
+// TileLegend holds tile IDs grouped by surface type for prompt injection
+type TileLegend struct {
+	Drivable []int
+	Walkable []int
+	Obstacle []int
+}
+
+func buildTileLegend() TileLegend {
+	return TileLegend{
+		Drivable: domain.TilesBySurface[domain.SurfaceAsphalt],
+		Walkable: domain.TilesBySurface[domain.SurfaceConcrete],
+		Obstacle: domain.TilesBySurface[domain.SurfaceObstacle],
+	}
+}
 
 type Client interface {
 	GenerateScenario(ctx context.Context, req ScenarioRequest) (*ScenarioResponse, error)
@@ -32,14 +49,26 @@ func (c *client) GenerateScenario(ctx context.Context, req ScenarioRequest) (*Sc
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
-		InputVariables: []string{},
+		InputVariables: []string{"TemplateID", "Dimensions", "GridData", "Factors"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
 	// Inject Data into Prompt Template
-	templateStr, err := template.Format(map[string]any{})
+	templateStr, err := template.Format(map[string]any{
+		"TemplateName": req.TemplateName,
+		"Dimensions":   req.GridDimensions,
+		"GridData":     formatGridForLLM(req.GridData),
+		"Factors":      req.Factors,
+	})
 	if err != nil {
 		return nil, err
 	}
+
+	// TO DEBUG
+	// fmt.Println("========== SYSTEM PROMPT ==========")
+	// fmt.Println(c.sysMsg)
+	// fmt.Println("========== USER PROMPT ==========")
+	// fmt.Println(templateStr)
+	// fmt.Println("===================================")
 
 	// Call LLM
 	res, err := c.model.GenerateContent(
@@ -90,9 +119,36 @@ func NewClient(modelName string, provider Provider) (Client, error) {
 		return nil, err
 	}
 
+	// Render system prompt once with tile legend
+	sysTemplate := prompts.PromptTemplate{
+		Template:       systemPromptSrc,
+		InputVariables: []string{"TileLegend"},
+		TemplateFormat: prompts.TemplateFormatGoTemplate,
+	}
+	sysMsg, err := sysTemplate.Format(map[string]any{
+		"TileLegend": buildTileLegend(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to render system prompt: %w", err)
+	}
+
 	return &client{
 		model:          llm,
-		sysMsg:         systemPromptSrc,
+		sysMsg:         sysMsg,
 		promptTemplate: promptTemplateSrc,
 	}, nil
+}
+
+func formatGridForLLM(grid [][]int) string {
+	var sb strings.Builder
+	sb.WriteString("[\n")
+	for _, row := range grid {
+		// Format each row as "[0, 0, 9, ...],"
+		rowJSON, _ := json.Marshal(row)
+		sb.WriteString("  ")
+		sb.Write(rowJSON)
+		sb.WriteString(",\n")
+	}
+	sb.WriteString("]")
+	return sb.String()
 }

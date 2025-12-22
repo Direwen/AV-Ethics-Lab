@@ -1,26 +1,29 @@
 package llm
 
+import "github.com/direwen/go-server/internal/scenario"
+
 type ScenarioRequest struct {
-	TemplateName   string
-	GridDimensions string
-	GridData       []string
-	Factors        map[string]interface{}
+	TemplateName   string                   `json:"template_name"`
+	GridDimensions string                   `json:"grid_dimensions"`
+	GridData       [][]int                  `json:"grid_data"`
+	Factors        scenario.ScenarioFactors `json:"factors"`
 }
 
 type ScenarioResponse struct {
-	Narrative string
-	Entities  []RawEntity
-	Factors   map[string]interface{}
+	Verification string      `json:"_verification"`
+	Narrative    string      `json:"narrative"`
+	Entities     []RawEntity `json:"entities"`
 }
 
 type RawEntity struct {
-	Type string
-	Row  int
-	Col  int
-	Meta RawEntityMeta
+	Type     string        `json:"type"`
+	Row      int           `json:"row"`
+	Col      int           `json:"col"`
+	Metadata RawEntityMeta `json:"metadata"`
 }
 
 type RawEntityMeta struct {
-	Behavior string
-	Occluded bool
+	IsStar      bool   `json:"is_star"`
+	IsViolation bool   `json:"is_violation"`
+	Action      string `json:"action"`
 }
