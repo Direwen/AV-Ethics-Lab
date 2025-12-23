@@ -17,18 +17,28 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) GetNext(c echo.Context) error {
-	sessionID, _ := util.GetSessionID(c)
-	s, err := h.service.GetNextScenario(
-		c.Request().Context(),
-		uuid.MustParse(sessionID),
-	)
+	// get session id from context (set by auth middleware)
+	sessionID, ok := util.GetSessionID(c)
+	if !ok {
+		return util.ErrorResponse(c, http.StatusUnauthorized, "Missing session", nil)
+	}
+
+	id, err := uuid.Parse(sessionID)
 	if err != nil {
-		return err
+		return util.ErrorResponse(c, http.StatusBadRequest, "Invalid session ID format", err)
 	}
 
-	if s == nil {
-		return util.SuccessResponse(c, http.StatusOK, "no scenarios available", nil)
+	scenario, err := h.service.GetNextScenario(c.Request().Context(), id)
+	if err != nil {
+		switch err.Error() {
+		case "experiment completed":
+			return util.ErrorResponse(c, http.StatusConflict, "Experiment completed", err)
+		case "session expired":
+			return util.ErrorResponse(c, http.StatusUnauthorized, "Session expired", err)
+		default:
+			return util.ErrorResponse(c, http.StatusInternalServerError, "Failed to get next scenario", err)
+		}
 	}
 
-	return util.SuccessResponse(c, http.StatusOK, "", map[string]*Scenario{"scenario": s})
+	return util.SuccessResponse(c, http.StatusOK, "Scenario retrieved", scenario)
 }
