@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/direwen/go-server/internal/shared/domain"
-	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
@@ -18,17 +17,16 @@ type Service interface {
 	RegisterSession(ctx context.Context, input CreateSessionInput) (string, error)
 	ValidateSession(ctx context.Context, session Session) error
 	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)
+	CompleteSession(ctx context.Context, session Session) error
 }
 
 type service struct {
-	repo            Repository
-	templateService template.Service
+	repo Repository
 }
 
-func NewService(repo Repository, templateService template.Service) Service {
+func NewService(repo Repository) Service {
 	return &service{
-		repo:            repo,
-		templateService: templateService,
+		repo: repo,
 	}
 }
 
@@ -43,11 +41,7 @@ func (s *service) RegisterSession(ctx context.Context, input CreateSessionInput)
 		return "", err
 	}
 
-	templates, err := s.templateService.GetAllTemplates(ctx)
-	if err != nil {
-		return "", err
-	}
-	experimentPlan := domain.GenerateBalancedDesign(len(templates))
+	experimentPlan := domain.GenerateBalancedDesign(domain.ExperimentTargetCount)
 	planInJSON, err := json.Marshal(experimentPlan)
 	if err != nil {
 		return "", err
@@ -108,4 +102,9 @@ func (s *service) GetSession(ctx context.Context, id uuid.UUID) (*Session, error
 	}
 
 	return session, err
+}
+
+func (s *service) CompleteSession(ctx context.Context, session Session) error {
+	session.Status = StatusCompleted
+	return s.repo.Update(ctx, &session)
 }

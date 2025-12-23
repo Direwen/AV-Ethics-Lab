@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/template"
+	"github.com/direwen/go-server/pkg/util"
 	"github.com/google/uuid"
 )
 
@@ -33,6 +35,7 @@ func NewService(repo Repository, sessionService session.Service, templateService
 }
 
 func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error) {
+
 	// Get Session
 	session, err := s.sessionService.GetSession(ctx, sessionID)
 	if err != nil {
@@ -50,13 +53,6 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Sc
 		return pending, nil
 	}
 
-	// Generate the Scenario
-	// Extract the experiment plan
-	var experimentPlan []domain.ScenarioFactors
-	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
-		return nil, errors.New("failed to load the experiment plan")
-	}
-
 	// Check Progress
 	// Get used scenario context template ids
 	usedContextIDs, err := s.repo.GetUsedTemplateIDs(ctx, sessionID)
@@ -64,16 +60,26 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Sc
 		return nil, err
 	}
 	currentStep := len(usedContextIDs)
+
+	// Load the Experiment plan and keep the session status updated
+	var experimentPlan []domain.ScenarioFactors
+	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
+		return nil, errors.New("failed to load the experiment plan")
+	}
 	if currentStep >= len(experimentPlan) {
+		// Mark Session Completed
+		if err := s.sessionService.CompleteSession(ctx, *session); err != nil {
+			return nil, err
+		}
 		return nil, errors.New("experiment completed")
 	}
-	currentFactors := experimentPlan[currentStep]
 
-	// Get the unused context template
+	// Pick a context template and factors for the current scenario
 	contextTemplate, err := s.templateService.PickTemplate(usedContextIDs)
 	if err != nil {
 		return nil, err
 	}
+	currentFactors := experimentPlan[currentStep]
 
 	// Build Scenario LLM Request struct
 	var gridData [][]int
@@ -103,8 +109,10 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Sc
 		ContextTemplateID: contextTemplate.Id,
 		Narrative:         llmRes.Narrative,
 	}
-	// Save to DB
-	if err := s.repo.Create(ctx, newScenario); err != nil {
+	// Save to DB with retry
+	if err := util.Retry(ctx, 3, 50*time.Millisecond, func() error {
+		return s.repo.Create(ctx, newScenario)
+	}); err != nil {
 		return nil, err
 	}
 

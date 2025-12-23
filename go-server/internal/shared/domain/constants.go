@@ -62,3 +62,5 @@ var (
 	BrakeStatuses  = []BrakeStatus{BrakeStatusActive, BrakeStatusFailed, BrakeStatusFade}
 	Speeds         = []Speed{SpeedLow, SpeedMedium, SpeedHigh}
 )
+
+const ExperimentTargetCount = 12

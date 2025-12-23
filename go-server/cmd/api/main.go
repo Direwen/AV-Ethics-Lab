@@ -48,10 +48,7 @@ func main() {
 
 	// Session
 	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(
-		sessionRepo,
-		templateService,
-	)
+	sessionService := session.NewService(sessionRepo)
 	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario

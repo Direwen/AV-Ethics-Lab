@@ -11,6 +11,7 @@ type Repository interface {
 	FingerprintExists(ctx context.Context, fingerprint string) (bool, error)
 	Create(ctx context.Context, session *Session) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Session, error)
+	Update(ctx context.Context, session *Session) error
 }
 
 type repository struct {
@@ -43,4 +44,8 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Session, error
 	err := r.db.WithContext(ctx).First(&session, id).Error
 
 	return &session, err
+}
+
+func (r *repository) Update(ctx context.Context, session *Session) error {
+	return r.db.WithContext(ctx).Save(session).Error
 }
