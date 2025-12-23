@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/direwen/go-server/internal/config"
 	custommw "github.com/direwen/go-server/internal/middleware"
+	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/scenario"
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/template"
@@ -28,6 +30,22 @@ func main() {
 	config.ConnectDB()
 	db := config.GetDB()
 
+	// Init LLM Client
+	llmClient, err := llm.NewClient(os.Getenv("LLM_MODEL"), llm.ProviderOllama)
+	if err != nil {
+		log.Fatal("Failed to create LLM client: ", err)
+	}
+
+	// Template
+	templateRepo := template.NewRepository(db)
+	templateService := template.NewService(templateRepo)
+
+	log.Println("Loading Map Templates into Memory ....")
+	if err := templateService.LoadAllTemplates(context.Background()); err != nil {
+		log.Fatal("Failed to load templates: ", err)
+	}
+	log.Println("Templates Loaded")
+
 	// Session
 	sessionRepo := session.NewRepository(db)
 	sessionService := session.NewService(sessionRepo)
@@ -35,11 +53,13 @@ func main() {
 
 	// Scenario
 	scenarioRepo := scenario.NewRepository(db)
-	scenarioService := scenario.NewService(scenarioRepo)
+	scenarioService := scenario.NewService(
+		scenarioRepo,
+		sessionService,
+		templateService,
+		llmClient,
+	)
 	scenarioHandler := scenario.NewHandler(scenarioService)
-
-	// Template
-	templateRepo := template.NewRepository(db)
 
 	// Seed Templates
 	if err := template.SeedContextTemplates(templateRepo); err != nil {
