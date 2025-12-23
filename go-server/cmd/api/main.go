@@ -55,6 +55,7 @@ func main() {
 	scenarioRepo := scenario.NewRepository(db)
 	scenarioService := scenario.NewService(
 		scenarioRepo,
+		sessionService,
 		templateService,
 		llmClient,
 	)

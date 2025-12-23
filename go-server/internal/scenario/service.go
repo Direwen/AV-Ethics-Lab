@@ -3,6 +3,7 @@ package scenario
 import (
 	"context"
 
+	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/template"
 )
@@ -13,20 +14,22 @@ type Service interface {
 
 type service struct {
 	repo            Repository
+	sessionService  session.Service
 	templateService template.Service
 	llmClient       domain.LLMClient
 }
 
-func NewService(repo Repository, templateService template.Service, llmClient domain.LLMClient) Service {
+func NewService(repo Repository, sessionService session.Service, templateService template.Service, llmClient domain.LLMClient) Service {
 	return &service{
 		repo:            repo,
+		sessionService:  sessionService,
 		templateService: templateService,
 		llmClient:       llmClient,
 	}
 }
 
 func (s *service) GetNextScenario(ctx context.Context, sessionID string) (*Scenario, error) {
-
+	// Get Session
 	// Validate Session
 	// Check Progress
 	// Get used scenario context template ids

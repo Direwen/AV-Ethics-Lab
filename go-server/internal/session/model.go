@@ -1,6 +1,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/direwen/go-server/internal/shared/model"
 )
 
@@ -41,4 +43,7 @@ type Session struct {
 	Country           string `gorm:"type:varchar(10);not null" json:"country"` // ISO code
 	Occupation        string `gorm:"type:varchar(50)" json:"occupation"`
 	DrivingExperience int    `gorm:"type:smallint" json:"driving_experience"`
+	// State Management
+	Status    SessionStatus `gorm:"type:smallint;default:1;not null" json:"status"`
+	ExpiresAt time.Time     `gorm:"type:timestamp;not null" json:"expires_at"`
 }
