@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
+	Create(ctx context.Context, scenario *Scenario) error
+	GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 	GetLatestUnanswered(ctx context.Context, sessionID string) (*Scenario, error)
+	GetUsedTemplateIDs(ctx context.Context, sessionID string) ([]uuid.UUID, error)
 }
 
 type repository struct {
@@ -17,6 +21,17 @@ type repository struct {
 
 func NewRepository(db *gorm.DB) Repository {
 	return &repository{db}
+}
+
+func (r *repository) Create(ctx context.Context, scenario *Scenario) error {
+	return r.db.WithContext(ctx).Create(scenario).Error
+}
+
+func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
+	var s Scenario
+
+	err := r.db.WithContext(ctx).Preload("ContextTemplate").First(&s, "id = ?", id).Error
+	return &s, err
 }
 
 func (r *repository) GetLatestUnanswered(ctx context.Context, sessionID string) (*Scenario, error) {
@@ -39,4 +54,14 @@ func (r *repository) GetLatestUnanswered(ctx context.Context, sessionID string) 
 	}
 
 	return &s, nil
+}
+
+func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID string) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+
+	err := r.db.Model(&Scenario{}).
+		Where("session_id = ?", sessionID).
+		Pluck("context_template_id", &ids).Error
+
+	return ids, err
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/scenario"
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/lpernett/godotenv"
 )
 
@@ -34,7 +35,7 @@ func main() {
 
 	// Test GenerateScenario
 	ctx := context.Background()
-	req := llm.ScenarioRequest{
+	req := domain.ScenarioLLMRequest{
 		TemplateName:   "intersection_01",
 		GridDimensions: "10x10",
 		GridData: [][]int{

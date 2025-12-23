@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"github.com/direwen/go-server/internal/session"
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/shared/model"
 	"github.com/direwen/go-server/internal/template"
 	"github.com/google/uuid"
@@ -19,14 +20,5 @@ type Scenario struct {
 	Narrative         string                   `gorm:"type:text" json:"narrative"`
 }
 
-type ScenarioFactors struct {
-	Visibility         string   `json:"visibility"`
-	RoadCondition      string   `json:"road_condition"`
-	Location           string   `json:"location"`
-	BrakeStatus        string   `json:"brake_status"`
-	Speed              string   `json:"speed"`
-	HasTailgater       bool     `json:"has_tailgater"`
-	PrimaryEntity      string   `json:"primary_entity"`
-	PrimaryBehavior    string   `json:"primary_behavior"`
-	BackgroundEntities []string `json:"background_entities"`
-}
+// ScenarioFactors is an alias to the shared domain type
+type ScenarioFactors = domain.ScenarioFactors

@@ -2,13 +2,11 @@ package domain
 
 import (
 	"math/rand"
-
-	"github.com/direwen/go-server/internal/scenario"
 )
 
-func GenerateBalancedDesign(sessionID string, count int) []scenario.ScenarioFactors {
+func GenerateBalancedDesign(sessionID string, count int) []ScenarioFactors {
 
-	var deck []scenario.ScenarioFactors
+	var deck []ScenarioFactors
 
 	for i := 0; i < count; i++ {
 
@@ -40,7 +38,7 @@ func GenerateBalancedDesign(sessionID string, count int) []scenario.ScenarioFact
 		// Background Noise Selection
 		backgroundEntities := CastBackgroundEntities(2, 4)
 
-		factors := scenario.ScenarioFactors{
+		factors := ScenarioFactors{
 			Visibility:         string(vis),
 			BrakeStatus:        string(brake),
 			RoadCondition:      string(road),

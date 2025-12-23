@@ -36,7 +36,7 @@ func buildTileLegend() TileLegend {
 }
 
 type Client interface {
-	GenerateScenario(ctx context.Context, req ScenarioRequest) (*ScenarioResponse, error)
+	GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error)
 }
 
 type client struct {
@@ -45,7 +45,7 @@ type client struct {
 	promptTemplate string
 }
 
-func (c *client) GenerateScenario(ctx context.Context, req ScenarioRequest) (*ScenarioResponse, error) {
+func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error) {
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
@@ -88,7 +88,7 @@ func (c *client) GenerateScenario(ctx context.Context, req ScenarioRequest) (*Sc
 		return nil, fmt.Errorf("no choices returned")
 	}
 
-	var response ScenarioResponse
+	var response domain.ScenarioLLMResponse
 	if err := json.Unmarshal([]byte(res.Choices[0].Content), &response); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
