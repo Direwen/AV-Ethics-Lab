@@ -11,8 +11,8 @@ import (
 type Repository interface {
 	Create(ctx context.Context, scenario *Scenario) error
 	GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error)
-	GetLatestUnanswered(ctx context.Context, sessionID string) (*Scenario, error)
-	GetUsedTemplateIDs(ctx context.Context, sessionID string) ([]uuid.UUID, error)
+	GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error)
+	GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error)
 }
 
 type repository struct {
@@ -34,12 +34,21 @@ func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (
 	return &s, err
 }
 
-func (r *repository) GetLatestUnanswered(ctx context.Context, sessionID string) (*Scenario, error) {
+func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+
+	err := r.db.Model(&Scenario{}).
+		Where("session_id = ?", sessionID).
+		Pluck("context_template_id", &ids).Error
+
+	return ids, err
+}
+
+func (r *repository) GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error) {
 	var s Scenario
 
 	err := r.db.WithContext(ctx).
-		Table("scenarios").
-		Select("scenarios.*").
+		Model(&Scenario{}).
 		Joins("LEFT JOIN responses ON responses.scenario_id = scenarios.id").
 		Where("scenarios.session_id = ?", sessionID).
 		Where("responses.id IS NULL").
@@ -54,14 +63,4 @@ func (r *repository) GetLatestUnanswered(ctx context.Context, sessionID string) 
 	}
 
 	return &s, nil
-}
-
-func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID string) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-
-	err := r.db.Model(&Scenario{}).
-		Where("session_id = ?", sessionID).
-		Pluck("context_template_id", &ids).Error
-
-	return ids, err
 }

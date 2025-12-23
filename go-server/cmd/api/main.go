@@ -36,11 +36,6 @@ func main() {
 		log.Fatal("Failed to create LLM client: ", err)
 	}
 
-	// Session
-	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(sessionRepo)
-	sessionHandler := session.NewHandler(sessionService)
-
 	// Template
 	templateRepo := template.NewRepository(db)
 	templateService := template.NewService(templateRepo)
@@ -50,6 +45,14 @@ func main() {
 		log.Fatal("Failed to load templates: ", err)
 	}
 	log.Println("Templates Loaded")
+
+	// Session
+	sessionRepo := session.NewRepository(db)
+	sessionService := session.NewService(
+		sessionRepo,
+		templateService,
+	)
+	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario
 	scenarioRepo := scenario.NewRepository(db)

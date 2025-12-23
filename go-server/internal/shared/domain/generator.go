@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-func GenerateBalancedDesign(sessionID string, count int) []ScenarioFactors {
+func GenerateBalancedDesign(count int) []ScenarioFactors {
 
 	var deck []ScenarioFactors
 

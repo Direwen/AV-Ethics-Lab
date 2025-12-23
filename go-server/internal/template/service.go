@@ -12,7 +12,7 @@ import (
 type Service interface {
 	LoadAllTemplates(ctx context.Context) error
 	GetAllTemplates(ctx context.Context) ([]ContextTemplate, error)
-	PickTemplate(excludeIDs []string) (*ContextTemplate, error)
+	PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error)
 }
 
 type service struct {
@@ -50,7 +50,7 @@ func (s *service) GetAllTemplates(ctx context.Context) ([]ContextTemplate, error
 	return s.cache, nil
 }
 
-func (s *service) PickTemplate(excludeIDs []string) (*ContextTemplate, error) {
+func (s *service) PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -61,11 +61,7 @@ func (s *service) PickTemplate(excludeIDs []string) (*ContextTemplate, error) {
 	var candidates []ContextTemplate
 	excludeIDsMap := make(map[uuid.UUID]bool, len(excludeIDs))
 	for _, id := range excludeIDs {
-		parsedID, err := uuid.Parse(id)
-		if err != nil {
-			return nil, err
-		}
-		excludeIDsMap[parsedID] = true
+		excludeIDsMap[id] = true
 	}
 
 	for _, t := range s.cache {

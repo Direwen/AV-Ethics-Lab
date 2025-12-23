@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/direwen/go-server/internal/util"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,7 +20,7 @@ func (h *Handler) GetNext(c echo.Context) error {
 	sessionID, _ := util.GetSessionID(c)
 	s, err := h.service.GetNextScenario(
 		c.Request().Context(),
-		sessionID,
+		uuid.MustParse(sessionID),
 	)
 	if err != nil {
 		return err

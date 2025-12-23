@@ -10,5 +10,5 @@ type Response struct {
 	model.BaseModel
 	RankingOrder datatypes.JSON `gorm:"type:jsonb" json:"ranking_order"`
 	ReactionTime int64          `gorm:"not null" json:"reaction_time"`
-	ScenarioID   uuid.UUID      `gorm:"type:uuid;not null" json:"scenario_id"`
+	ScenarioID   uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex" json:"scenario_id"`
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/direwen/go-server/internal/shared/model"
+	"gorm.io/datatypes"
 )
 
 // Age range codes
@@ -46,4 +47,10 @@ type Session struct {
 	// State Management
 	Status    SessionStatus `gorm:"type:smallint;default:1;not null" json:"status"`
 	ExpiresAt time.Time     `gorm:"type:timestamp;not null" json:"expires_at"`
+	// Experiment Plan
+	ExperimentPlan datatypes.JSON `gorm:"type:jsonb" json:"-"`
+
+	// Relationship
+	// Scenarios []scenario.Scenario `gorm:"foreignKey:SessionID" json:"scenarios,omitempty"`
+
 }

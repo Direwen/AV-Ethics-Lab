@@ -2,12 +2,16 @@ package session
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"time"
 
+	"github.com/direwen/go-server/internal/shared/domain"
+	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type Service interface {
@@ -17,11 +21,15 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo            Repository
+	templateService template.Service
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, templateService template.Service) Service {
+	return &service{
+		repo:            repo,
+		templateService: templateService,
+	}
 }
 
 func (s *service) RegisterSession(ctx context.Context, input CreateSessionInput) (string, error) {
@@ -31,6 +39,16 @@ func (s *service) RegisterSession(ctx context.Context, input CreateSessionInput)
 	}
 
 	session_expiration_duration, err := time.ParseDuration(os.Getenv("SESSION_EXPIRATION"))
+	if err != nil {
+		return "", err
+	}
+
+	templates, err := s.templateService.GetAllTemplates(ctx)
+	if err != nil {
+		return "", err
+	}
+	experimentPlan := domain.GenerateBalancedDesign(len(templates))
+	planInJSON, err := json.Marshal(experimentPlan)
 	if err != nil {
 		return "", err
 	}
@@ -46,6 +64,7 @@ func (s *service) RegisterSession(ctx context.Context, input CreateSessionInput)
 		IsDuplicate:       exists,
 		Status:            StatusActive,
 		ExpiresAt:         time.Now().Add(session_expiration_duration),
+		ExperimentPlan:    datatypes.JSON(planInJSON),
 	}
 
 	if err := s.repo.Create(ctx, &sess); err != nil {
