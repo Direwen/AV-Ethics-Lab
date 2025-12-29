@@ -12,6 +12,7 @@ import (
 type Service interface {
 	LoadAllTemplates(ctx context.Context) error
 	GetAllTemplates(ctx context.Context) ([]ContextTemplate, error)
+	GetByID(id uuid.UUID) (*ContextTemplate, error)
 	PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error)
 }
 
@@ -48,6 +49,18 @@ func (s *service) GetAllTemplates(ctx context.Context) ([]ContextTemplate, error
 	}
 
 	return s.cache, nil
+}
+
+func (s *service) GetByID(id uuid.UUID) (*ContextTemplate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, t := range s.cache {
+		if t.Id == id {
+			return &t, nil
+		}
+	}
+	return nil, errors.New("template not found")
 }
 
 func (s *service) PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error) {

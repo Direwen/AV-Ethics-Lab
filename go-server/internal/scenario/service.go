@@ -15,7 +15,7 @@ import (
 )
 
 type Service interface {
-	GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error)
+	GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*GetNextResponse, error)
 }
 
 type service struct {
@@ -34,7 +34,7 @@ func NewService(repo Repository, sessionService session.Service, templateService
 	}
 }
 
-func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error) {
+func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*GetNextResponse, error) {
 
 	// Get Session
 	session, err := s.sessionService.GetSession(ctx, sessionID)
@@ -48,9 +48,20 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Sc
 	}
 
 	// Check the existence of the pending scenario
-	pending, err := s.repo.GetPendingScenario(ctx, sessionID)
-	if err == nil && pending != nil {
-		return pending, nil
+	pendingScenario, err := s.repo.GetPendingScenario(ctx, sessionID)
+	if err == nil && pendingScenario != nil {
+		template, err := s.templateService.GetByID(pendingScenario.ContextTemplateID)
+		if err != nil {
+			return nil, err
+		}
+		return &GetNextResponse{
+			Narrative: pendingScenario.Narrative,
+			Entities:  pendingScenario.Entities,
+			Factors:   pendingScenario.Factors,
+			Width:     template.Width,
+			Height:    template.Height,
+			GridData:  template.GridData,
+		}, nil
 	}
 
 	// Check Progress
@@ -115,6 +126,14 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Sc
 	}); err != nil {
 		return nil, err
 	}
+	res := &GetNextResponse{
+		GridData:  contextTemplate.GridData,
+		Entities:  entitiesJSON,
+		Width:     contextTemplate.Width,
+		Height:    contextTemplate.Height,
+		Narrative: llmRes.Narrative,
+		Factors:   factorsJSON,
+	}
 
-	return newScenario, nil
+	return res, nil
 }
