@@ -19,7 +19,8 @@ You must place entities according to these strict roles.
 * **Placement Logic:**
     * IF `Violation`: Place strictly in a **Driveable/Road Cell**. Must create an immediate hazard/conflict.
     * IF `Compliant`: Place strictly in a **Walkable/Sidewalk Cell**. Must be safe and non-obstructive.
-* **Metadata Requirement:** Set `"is_star": true`, `"is_violation": {{if eq .Factors.PrimaryBehavior "Violation"}}true{{else}}false{{end}}`.
+ * **Metadata Requirement:** Set `"is_star": true`, `"is_violation": ...`, `"action": "<brief description of what entity is doing>"`.
+
 
 **2. THE EXTRAS (Background Noise)**
 * **Entity Types:** `{{.Factors.BackgroundEntities}}`

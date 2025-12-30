@@ -64,11 +64,11 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	}
 
 	// TO DEBUG
-	// fmt.Println("========== SYSTEM PROMPT ==========")
-	// fmt.Println(c.sysMsg)
-	// fmt.Println("========== USER PROMPT ==========")
-	// fmt.Println(templateStr)
-	// fmt.Println("===================================")
+	fmt.Println("========== SYSTEM PROMPT ==========")
+	fmt.Println(c.sysMsg)
+	fmt.Println("========== USER PROMPT ==========")
+	fmt.Println(templateStr)
+	fmt.Println("===================================")
 
 	// Call LLM
 	res, err := c.model.GenerateContent(

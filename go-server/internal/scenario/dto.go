@@ -28,3 +28,18 @@ type GetNextResponse struct {
 	Height    int            `json:"height"`
 	GridData  datatypes.JSON `json:"grid_data"`
 }
+
+type EnrichedEntity struct {
+	ID       string             `json:"id"`
+	Type     string             `json:"type"`
+	Emoji    string             `json:"emoji"`
+	Row      int                `json:"row"`
+	Col      int                `json:"col"`
+	Metadata EnrichedEntityMeta `json:"metadata"`
+}
+
+type EnrichedEntityMeta struct {
+	IsStar      bool   `json:"is_star"`
+	IsViolation bool   `json:"is_violation"`
+	Action      string `json:"action"`
+}

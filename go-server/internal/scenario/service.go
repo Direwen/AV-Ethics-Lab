@@ -110,8 +110,26 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		return nil, errors.New("failed to generate scenario")
 	}
 
+	// Enrich entities with IDs and Emojis
+	enrichedEntities := make([]EnrichedEntity, len(llmRes.Entities))
+	for i, e := range llmRes.Entities {
+		info := domain.EntityRegistry[e.Type]
+		enrichedEntities[i] = EnrichedEntity{
+			ID:    fmt.Sprintf("ent_%s_%d", e.Type, i),
+			Type:  e.Type,
+			Emoji: info.Emoji,
+			Row:   e.Row,
+			Col:   e.Col,
+			Metadata: EnrichedEntityMeta{
+				IsStar:      e.Metadata.IsStar,
+				IsViolation: e.Metadata.IsViolation,
+				Action:      e.Metadata.Action,
+			},
+		}
+	}
+
 	// Serialize
-	entitiesJSON, _ := json.Marshal(llmRes.Entities)
+	entitiesJSON, _ := json.Marshal(enrichedEntities)
 	factorsJSON, _ := json.Marshal(currentFactors)
 	newScenario := &Scenario{
 		SessionID:         sessionID,

@@ -33,7 +33,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCellDefinition } from '~/composables/useCellDefinition'
-import SimulationCell from '~/components/simulation/Cell.vue'
 
 const { getCellDefinition } = useCellDefinition()
 
