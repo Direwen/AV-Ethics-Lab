@@ -11,8 +11,10 @@ type LLMClient interface {
 type ScenarioLLMRequest struct {
 	TemplateName   string          `json:"template_name"`
 	GridDimensions string          `json:"grid_dimensions"`
-	GridData       [][]int         `json:"grid_data"`
 	Factors        ScenarioFactors `json:"factors"`
+	WalkableCells  [][2]int        `json:"walkable_cells"`
+	DrivableCells  [][2]int        `json:"drivable_cells"`
+	BuildingCells  [][2]int        `json:"building_cells"`
 }
 
 // ScenarioLLMResponse is the response from the LLM for scenario generation

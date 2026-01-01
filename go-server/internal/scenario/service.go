@@ -102,8 +102,10 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		domain.ScenarioLLMRequest{
 			TemplateName:   contextTemplate.Name,
 			GridDimensions: fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
-			GridData:       gridData,
 			Factors:        currentFactors,
+			WalkableCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceWalkable),
+			DrivableCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceDrivable),
+			BuildingCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceBuilding),
 		},
 	)
 	if err != nil {

@@ -21,21 +21,6 @@ var systemPromptSrc string
 //go:embed prompts/template.md
 var promptTemplateSrc string
 
-// TileLegend holds tile IDs grouped by surface type for prompt injection
-type TileLegend struct {
-	Drivable []int
-	Walkable []int
-	Obstacle []int
-}
-
-func buildTileLegend() TileLegend {
-	return TileLegend{
-		Drivable: domain.TilesBySurface[domain.SurfaceAsphalt],
-		Walkable: domain.TilesBySurface[domain.SurfaceConcrete],
-		Obstacle: domain.TilesBySurface[domain.SurfaceObstacle],
-	}
-}
-
 type Client interface {
 	GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error)
 }
@@ -50,15 +35,17 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
-		InputVariables: []string{"TemplateID", "Dimensions", "GridData", "Factors"},
+		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
 	// Inject Data into Prompt Template
 	templateStr, err := template.Format(map[string]any{
-		"TemplateName": req.TemplateName,
-		"Dimensions":   req.GridDimensions,
-		"GridData":     formatGridForLLM(req.GridData),
-		"Factors":      req.Factors,
+		"TemplateName":  req.TemplateName,
+		"Dimensions":    req.GridDimensions,
+		"Factors":       req.Factors,
+		"WalkableCells": formatCellsForLLM(req.WalkableCells),
+		"DrivableCells": formatCellsForLLM(req.DrivableCells),
+		"BuildingCells": formatCellsForLLM(req.BuildingCells),
 	})
 	if err != nil {
 		return nil, err
@@ -127,22 +114,9 @@ func NewClient(modelName string, provider Provider) (Client, error) {
 		return nil, err
 	}
 
-	// Render system prompt once with tile legend
-	sysTemplate := prompts.PromptTemplate{
-		Template:       systemPromptSrc,
-		InputVariables: []string{"TileLegend"},
-		TemplateFormat: prompts.TemplateFormatGoTemplate,
-	}
-	sysMsg, err := sysTemplate.Format(map[string]any{
-		"TileLegend": buildTileLegend(),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to render system prompt: %w", err)
-	}
-
 	return &client{
 		model:          llm,
-		sysMsg:         sysMsg,
+		sysMsg:         systemPromptSrc,
 		promptTemplate: promptTemplateSrc,
 	}, nil
 }
@@ -159,4 +133,12 @@ func formatGridForLLM(grid [][]int) string {
 	}
 	sb.WriteString("]")
 	return sb.String()
+}
+
+func formatCellsForLLM(cells [][2]int) string {
+	if len(cells) == 0 {
+		return "[]"
+	}
+	result, _ := json.Marshal(cells)
+	return string(result)
 }

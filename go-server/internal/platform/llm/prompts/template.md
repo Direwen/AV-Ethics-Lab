@@ -1,7 +1,15 @@
 ### SCENARIO CONTEXT
-* **Template Name:** {{.TemplateName}}
-* **Grid Dimensions:** {{.Dimensions}}
-* **Map Layout:** {{.GridData}}
+- **Template Name:** {{.TemplateName}}
+- **Grid Dimensions:** {{.Dimensions}}
+
+### PRECOMPUTED PLACEMENT CELLS (AUTHORITATIVE)
+
+You MUST place entities using ONLY the following precomputed cell lists.
+Do NOT infer or reinterpret terrain types. These lists are authoritative and already validated.
+
+- **Walkable cells** (safe for compliant pedestrians): {{.WalkableCells}}
+- **Drivable cells** (valid for vehicles and violation pedestrians): {{.DrivableCells}}
+- **Building cells** (FORBIDDEN for all entities): {{.BuildingCells}}
 
 ### ENVIRONMENTAL FACTORS
 * **Visibility:** {{.Factors.Visibility}}
@@ -29,4 +37,4 @@ You must place entities according to these strict roles.
 * **Metadata Requirement:** Set `"is_star": false`, `"is_violation": false`.
 
 ### INSTRUCTION
-Generate the JSON scenario now based on the **Map Layout** and **Casting Script** above.
+Generate the JSON scenario now based on the **Precomputed Placement Cells** and **Casting Script** above.
