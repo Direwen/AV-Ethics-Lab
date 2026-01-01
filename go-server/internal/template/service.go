@@ -2,10 +2,12 @@ package template
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"sync"
 
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/google/uuid"
 )
 
@@ -14,12 +16,14 @@ type Service interface {
 	GetAllTemplates(ctx context.Context) ([]ContextTemplate, error)
 	GetByID(id uuid.UUID) (*ContextTemplate, error)
 	PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error)
+	GetCellsBySurface(templateID uuid.UUID, surface domain.SurfaceType) [][2]int
 }
 
 type service struct {
-	repo  Repository
-	cache []ContextTemplate
-	mu    sync.RWMutex //only one write | multiple reads
+	repo           Repository
+	cache          []ContextTemplate
+	cellsBySurface map[uuid.UUID]map[domain.SurfaceType][][2]int
+	mu             sync.RWMutex //only one write | multiple reads
 }
 
 func NewService(repo Repository) Service {
@@ -33,8 +37,29 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 		return err
 	}
 
+	cellsBySurface := make(map[uuid.UUID]map[domain.SurfaceType][][2]int)
+	for _, template := range templates {
+		var grid [][]int
+		if err := json.Unmarshal(template.GridData, &grid); err != nil {
+			return err
+		}
+		cellsBySurface[template.Id] = make(map[domain.SurfaceType][][2]int)
+		for row, cols := range grid {
+			for col, tileID := range cols {
+				if tile, exists := domain.TileRegistry[tileID]; exists {
+					surface := tile.Definition.SurfaceType
+					cellsBySurface[template.Id][surface] = append(
+						cellsBySurface[template.Id][surface],
+						[2]int{row, col},
+					)
+				}
+			}
+		}
+	}
+
 	s.mu.Lock()
 	s.cache = templates
+	s.cellsBySurface = cellsBySurface
 	s.mu.Unlock()
 
 	return nil
@@ -89,4 +114,14 @@ func (s *service) PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error)
 
 	randomIndex := rand.Intn(len(candidates))
 	return &candidates[randomIndex], nil
+}
+
+func (s *service) GetCellsBySurface(templateID uuid.UUID, surface domain.SurfaceType) [][2]int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if cells, ok := s.cellsBySurface[templateID]; ok {
+		return cells[surface]
+	}
+	return nil
 }
