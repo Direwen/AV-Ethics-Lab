@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/direwen/go-server/internal/shared/domain"
@@ -110,6 +111,13 @@ func NewClient(modelName string, provider Provider) (Client, error) {
 		llm, err = ollama.New(
 			ollama.WithModel(modelName),
 			ollama.WithFormat("json"),
+		)
+	case ProviderGroq:
+		llm, err = openai.New(
+			openai.WithModel(modelName),
+			openai.WithBaseURL("https://api.groq.com/openai/v1"),
+			openai.WithToken(os.Getenv("GROQ_API_KEY")),
+			openai.WithResponseFormat(openai.ResponseFormatJSON),
 		)
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", provider)
