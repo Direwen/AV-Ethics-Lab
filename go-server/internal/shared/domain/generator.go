@@ -2,6 +2,8 @@ package domain
 
 import (
 	"math/rand"
+	"os"
+	"strconv"
 )
 
 func GenerateBalancedDesign(count int) []ScenarioFactors {
@@ -36,7 +38,9 @@ func GenerateBalancedDesign(count int) []ScenarioFactors {
 		// STAR selection
 		primaryEntity := CastPrimaryEntity()
 		// Background Noise Selection
-		backgroundEntities := CastBackgroundEntities(2, 4)
+		minEntities, _ := strconv.Atoi(os.Getenv("BACKGROUND_ENTITIES_MIN"))
+		maxEntities, _ := strconv.Atoi(os.Getenv("BACKGROUND_ENTITIES_MAX"))
+		backgroundEntities := CastBackgroundEntities(minEntities, maxEntities)
 
 		factors := ScenarioFactors{
 			Visibility:         string(vis),
