@@ -4,16 +4,15 @@
     >
         <span 
             v-for="(entity, index) in entities"
+            
             :key="entity.id"
             class="absolute transition-all duration-300 select-none text-base sm:text-lg md:text-xl lg:text-3xl"
-            :style="getStackStyles(index, entities.length)"
+            :style="getEntityStyles(entity, index, entities.length)"
             :class="[
-                entity.metadata.is_occluded && !parentHover ? 'opacity-50 grayscale' : '',
-                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer hover:scale-110 z-50' : '',
-                rankStore.isSelected(entity.id) ? 'selected-glow scale-110' : ''
+                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer z-50' : '',
+                rankStore.isSelected(entity.id) ? 'selected-glow' : ''
             ]"
-            :title="entity.metadata.name"
-            @click.stop="handleEntityClick(entity)"
+            :title="`${entity.type} -> ${entity.metadata?.orientation}`"            @click.stop="handleEntityClick(entity)"
         >
             {{ entity.emoji }}
         </span>
@@ -46,24 +45,50 @@ function handleEntityClick(entity: Entity) {
     }
 }
 
-function getStackStyles(index: number, total: number) {
-    const zIndex = (index + 1) * 10
+function getOrientationTransform(orientation: string | undefined): string {
+    if (!orientation) return ''
     
-    if (total === 1) return { zIndex, transform: 'scale(1)' }
+    // All emojis assumed to face LEFT (West) by default
+    switch (orientation) {
+        case 'N': return 'rotate(90deg)'  // Left -> Up
+        case 'S': return 'rotate(-90deg)' // Left -> Down
+        case 'E': return 'scaleX(-1)'     // Left -> Flip to Right
+        case 'W': return 'rotate(0deg)'   // Left -> Left (Natural)
+        default: return ''
+    }
+}
 
-    if (props.parentHover) {
-        const spacing = 28
-        const offset = (index * spacing) - ((total - 1) * spacing / 2)
-        return {
-            zIndex: 100 + index,
-            transform: `translateX(${offset}px) scale(1.15)`
+function getEntityStyles(entity: Entity, index: number, total: number) {
+    const zIndex = (index + 1) * 10
+    const orientationTransform = getOrientationTransform(entity.metadata?.orientation)
+    
+    // Base transforms array
+    let transformList: string[] = []
+
+    // 1. Handle Stacking / Hover Offsets
+    if (total > 1) {
+        if (props.parentHover) {
+            const spacing = 28
+            const offset = (index * spacing) - ((total - 1) * spacing / 2)
+            transformList.push(`translateX(${offset}px)`)
+            transformList.push('scale(1.15)')
+        } else {
+            const offset = (index * 3) - ((total - 1) * 1.5)
+            transformList.push(`translate(${offset}px, ${offset}px)`)
         }
+    } else {
+        // Even for single items, explicit scale(1) helps prevent fuzzy rendering text issues in some browsers
+        transformList.push('scale(1)')
     }
 
-    const offset = (index * 3) - ((total - 1) * 1.5)
-    return {
-        zIndex,
-        transform: `translate(${offset}px, ${offset}px)`
+    // 2. Add Orientation (Last, so it rotates IN PLACE after translation)
+    if (orientationTransform) {
+        transformList.push(orientationTransform)
+    }
+
+    return { 
+        zIndex: props.parentHover ? 100 + index : zIndex, 
+        transform: transformList.join(' ') 
     }
 }
 </script>

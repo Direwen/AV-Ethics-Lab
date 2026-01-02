@@ -35,17 +35,18 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
-		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells"},
+		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells", "RestrictedCells"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
 	// Inject Data into Prompt Template
 	templateStr, err := template.Format(map[string]any{
-		"TemplateName":  req.TemplateName,
-		"Dimensions":    req.GridDimensions,
-		"Factors":       req.Factors,
-		"WalkableCells": formatCellsForLLM(req.WalkableCells),
-		"DrivableCells": formatCellsForLLM(req.DrivableCells),
-		"BuildingCells": formatCellsForLLM(req.BuildingCells),
+		"TemplateName":    req.TemplateName,
+		"Dimensions":      req.GridDimensions,
+		"Factors":         req.Factors,
+		"WalkableCells":   formatCellsForLLM(req.WalkableCells),
+		"DrivableCells":   formatCellsForLLM(req.DrivableCells),
+		"BuildingCells":   formatCellsForLLM(req.BuildingCells),
+		"RestrictedCells": formatCellsForLLM(req.RestrictedCells),
 	})
 	if err != nil {
 		return nil, err

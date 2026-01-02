@@ -9,12 +9,13 @@ type LLMClient interface {
 
 // ScenarioLLMRequest is the request payload for scenario generation
 type ScenarioLLMRequest struct {
-	TemplateName   string          `json:"template_name"`
-	GridDimensions string          `json:"grid_dimensions"`
-	Factors        ScenarioFactors `json:"factors"`
-	WalkableCells  [][2]int        `json:"walkable_cells"`
-	DrivableCells  [][2]int        `json:"drivable_cells"`
-	BuildingCells  [][2]int        `json:"building_cells"`
+	TemplateName    string          `json:"template_name"`
+	GridDimensions  string          `json:"grid_dimensions"`
+	Factors         ScenarioFactors `json:"factors"`
+	WalkableCells   [][2]int        `json:"walkable_cells"`
+	DrivableCells   [][2]int        `json:"drivable_cells"`
+	BuildingCells   [][2]int        `json:"building_cells"`
+	RestrictedCells [][2]int        `json:"restricted_cells"`
 }
 
 // ScenarioLLMResponse is the response from the LLM for scenario generation
@@ -35,8 +36,10 @@ type RawEntity struct {
 // RawEntityMeta contains metadata for a raw entity
 type RawEntityMeta struct {
 	IsStar      bool   `json:"is_star"`
+	IsEgo       bool   `json:"is_ego"`
 	IsViolation bool   `json:"is_violation"`
 	Action      string `json:"action"`
+	Orientation string `json:"orientation"`
 }
 
 // ScenarioFactors contains the factors used to generate a scenario

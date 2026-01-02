@@ -4,18 +4,19 @@ export interface Position {
 }
 
 export interface EntityMetadata {
-    name: string
-    risk_level: string 
-    is_occluded: boolean
-    behavior?: string
-    occluded_by?: string // ID of the entity hiding this one
+    is_star: boolean
+    is_ego: boolean
+    is_violation: boolean
+    action: string
+    orientation: string
 }
 
 export interface Entity {
     id: string
     type: string
     emoji: string
-    position: Position
+    row: number
+    col: number
     metadata: EntityMetadata
 }
 

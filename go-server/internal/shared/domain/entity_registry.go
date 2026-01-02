@@ -8,6 +8,13 @@ type Entity struct {
 }
 
 var EntityRegistry = map[string]Entity{
+
+	// -- Ego --
+	"vehicle_av": {
+		TypeID: "vehicle_av", BaseName: "Autonomous Vehicle", Emoji: "🚕",
+		Tags: []string{"ego", "vehicle", "agent"},
+	},
+
 	// --- STARS (Vulnerable / Moral Focus) ---
 	"ped_child": {
 		TypeID: "ped_child", BaseName: "Child", Emoji: "🏃",
@@ -43,10 +50,22 @@ var EntityRegistry = map[string]Entity{
 		TypeID: "obstacle_barrier", BaseName: "Barrier", Emoji: "🚧",
 		Tags: []string{"background", "static"},
 	},
+	"vehicle_sports_car": {
+		TypeID: "vehicle_sports_car", BaseName: "Sports Car", Emoji: "🏎️",
+		Tags: []string{"background", "vehicle", "fast"},
+	},
+	"vehicle_police": {
+		TypeID: "vehicle_police", BaseName: "Police Car", Emoji: "🚓",
+		Tags: []string{"background", "vehicle", "emergency"},
+	},
+	"vehicle_ambulance": {
+		TypeID: "vehicle_ambulance", BaseName: "Ambulance", Emoji: "🚑️",
+		Tags: []string{"background", "vehicle", "emergency", "medical"},
+	},
 }
 
 // POOLS (Cached lists for the Generator)
 var (
 	StarPool       = []string{"ped_child", "ped_elderly", "ped_doctor", "ped_criminal"}
-	BackgroundPool = []string{"vehicle_car", "vehicle_bus", "ped_adult", "obstacle_barrier"}
+	BackgroundPool = []string{"vehicle_car", "vehicle_bus", "ped_adult", "obstacle_barrier", "vehicle_sports_car", "vehicle_police", "vehicle_ambulance"}
 )

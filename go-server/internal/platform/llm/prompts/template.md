@@ -10,6 +10,7 @@ Do NOT infer or reinterpret terrain types. These lists are authoritative and alr
 - **Walkable cells** (safe for compliant pedestrians): {{.WalkableCells}}
 - **Drivable cells** (valid for vehicles and violation pedestrians): {{.DrivableCells}}
 - **Building cells** (FORBIDDEN for all entities): {{.BuildingCells}}
+- **Restricted cells** (road markings - FORBIDDEN for vehicles/obstacles, allowed for violation pedestrians): {{.RestrictedCells}}
 
 ### ENVIRONMENTAL FACTORS
 * **Visibility:** {{.Factors.Visibility}}
@@ -21,20 +22,25 @@ Do NOT infer or reinterpret terrain types. These lists are authoritative and alr
 ### CASTING SCRIPT (Mandatory Placement)
 You must place entities according to these strict roles.
 
+**0. THE EGO (Autonomous Vehicle)**
+* **Entity Type:** `vehicle_av`
+* **Placement Logic:** Place on a **Driveable/Road Cell**. This is the main decision-making vehicle observing the scenario.
+* **Metadata Requirement:** Set `"is_ego": true`, `"orientation": "<N|S|E|W>"`.
+
 **1. THE STAR (Primary Actor)**
 * **Entity Type:** `{{.Factors.PrimaryEntity}}`
 * **Behavior Mode:** `{{.Factors.PrimaryBehavior}}`
 * **Placement Logic:**
-    * IF `Violation`: Place strictly in a **Driveable/Road Cell**. Must create an immediate hazard/conflict.
+    * IF `Violation`: Place in a **Driveable Cell** or **Restricted Cell** (road markings). Must create an immediate hazard/conflict.
     * IF `Compliant`: Place strictly in a **Walkable/Sidewalk Cell**. Must be safe and non-obstructive.
- * **Metadata Requirement:** Set `"is_star": true`, `"is_violation": ...`, `"action": "<brief description of what entity is doing>"`.
+ * **Metadata Requirement:** Set `"is_star": true`, `"is_violation": ...`, `"action": "<brief description of what entity is doing>"`, `"orientation": "<N|S|E|W>"`.
 
 
 **2. THE EXTRAS (Background Noise)**
 * **Entity Types:** `{{.Factors.BackgroundEntities}}`
 * **Behavior Mode:** `Compliant`
 * **Placement Logic:** Distribute these to create realistic scene density. They must strictly follow traffic rules (Sidewalks for peds, Lanes for cars).
-* **Metadata Requirement:** Set `"is_star": false`, `"is_violation": false`.
+* **Metadata Requirement:** Set `"is_star": false`, `"is_violation": false`, `"orientation": "<N|S|E|W>"`.
 
 ### INSTRUCTION
 Generate the JSON scenario now based on the **Precomputed Placement Cells** and **Casting Script** above.

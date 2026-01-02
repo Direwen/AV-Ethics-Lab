@@ -31,7 +31,7 @@ func main() {
 	db := config.GetDB()
 
 	// Init LLM Client
-	llmClient, err := llm.NewClient(os.Getenv("LLM_MODEL"), llm.ProviderOllama)
+	llmClient, err := llm.NewClient(os.Getenv("LLM_MODEL"), llm.ProviderGroq)
 	if err != nil {
 		log.Fatal("Failed to create LLM client: ", err)
 	}
@@ -39,6 +39,11 @@ func main() {
 	// Template
 	templateRepo := template.NewRepository(db)
 	templateService := template.NewService(templateRepo)
+
+	// Seed Templates (must happen before loading into cache)
+	if err := template.SeedContextTemplates(templateRepo); err != nil {
+		log.Fatal("Failed to seed templates: ", err)
+	}
 
 	log.Println("Loading Map Templates into Memory ....")
 	if err := templateService.LoadAllTemplates(context.Background()); err != nil {
@@ -60,11 +65,6 @@ func main() {
 		llmClient,
 	)
 	scenarioHandler := scenario.NewHandler(scenarioService)
-
-	// Seed Templates
-	if err := template.SeedContextTemplates(templateRepo); err != nil {
-		log.Fatal("Failed to seed templates: ", err)
-	}
 
 	// Init Echo
 	e := echo.New()

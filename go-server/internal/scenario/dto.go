@@ -40,6 +40,8 @@ type EnrichedEntity struct {
 
 type EnrichedEntityMeta struct {
 	IsStar      bool   `json:"is_star"`
+	IsEgo       bool   `json:"is_ego"`
 	IsViolation bool   `json:"is_violation"`
 	Action      string `json:"action"`
+	Orientation string `json:"orientation"`
 }

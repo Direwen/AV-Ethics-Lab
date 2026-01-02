@@ -14,9 +14,10 @@ type TileDefinition struct {
 type SurfaceType string
 
 const (
-	SurfaceDrivable SurfaceType = "drivable" // Roads
-	SurfaceWalkable SurfaceType = "walkable" // Sidewalks
-	SurfaceBuilding SurfaceType = "building" // Walls/Roofs (No placement allowed)
+	SurfaceDrivable   SurfaceType = "drivable"   // Roads
+	SurfaceWalkable   SurfaceType = "walkable"   // Sidewalks
+	SurfaceBuilding   SurfaceType = "building"   // Walls/Roofs (No placement allowed)
+	SurfaceRestricted SurfaceType = "restricted" // Road markings (No placement allowed)
 )
 
 const (
@@ -49,13 +50,13 @@ var TileRegistry = map[int]Tile{
 	10: {Name: "Asphalt Vertical", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
 	11: {Name: "Intersection Box", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
 
-	// --- ROAD MARKINGS (Still Roads) ---
+	// --- ROAD MARKINGS (Restricted - No placement allowed) ---
 	// Physics: Asphalt (It's just paint on road)
-	12: {Name: "Yellow Line Dash", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
-	13: {Name: "Double Yellow Horizontal", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
-	14: {Name: "Double Yellow Vertical", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
-	17: {Name: "Yellow Line Vertical", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
-	18: {Name: "Yellow Line Horizontal", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle}}},
+	12: {Name: "Yellow Line Dash", IsInteractive: false, Definition: TileDefinition{SurfaceType: SurfaceRestricted, DefaultUsage: []string{}}},
+	13: {Name: "Double Yellow Horizontal", IsInteractive: false, Definition: TileDefinition{SurfaceType: SurfaceRestricted, DefaultUsage: []string{}}},
+	14: {Name: "Double Yellow Vertical", IsInteractive: false, Definition: TileDefinition{SurfaceType: SurfaceRestricted, DefaultUsage: []string{}}},
+	17: {Name: "Yellow Line Vertical", IsInteractive: false, Definition: TileDefinition{SurfaceType: SurfaceRestricted, DefaultUsage: []string{}}},
+	18: {Name: "Yellow Line Horizontal", IsInteractive: false, Definition: TileDefinition{SurfaceType: SurfaceRestricted, DefaultUsage: []string{}}},
 
 	// --- CROSSWALKS (Shared Zones) ---
 	// Physics: Asphalt (Cars can drive over it)

@@ -100,12 +100,13 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	llmRes, err := s.llmClient.GenerateScenario(
 		ctx,
 		domain.ScenarioLLMRequest{
-			TemplateName:   contextTemplate.Name,
-			GridDimensions: fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
-			Factors:        currentFactors,
-			WalkableCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceWalkable),
-			DrivableCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceDrivable),
-			BuildingCells:  s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceBuilding),
+			TemplateName:    contextTemplate.Name,
+			GridDimensions:  fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
+			Factors:         currentFactors,
+			WalkableCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceWalkable),
+			DrivableCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceDrivable),
+			BuildingCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceBuilding),
+			RestrictedCells: s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceRestricted),
 		},
 	)
 	if err != nil {
@@ -124,8 +125,10 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 			Col:   e.Col,
 			Metadata: EnrichedEntityMeta{
 				IsStar:      e.Metadata.IsStar,
+				IsEgo:       e.Metadata.IsEgo,
 				IsViolation: e.Metadata.IsViolation,
 				Action:      e.Metadata.Action,
+				Orientation: e.Metadata.Orientation,
 			},
 		}
 	}

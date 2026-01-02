@@ -178,21 +178,24 @@ const narrative = computed(() => {
 
 function getEntitiesAt(row: number, col: number) {
   return currentEntities.value.filter(
-    e => e.position.row === row && e.position.col === col
+    e => e.row === row && e.col === col
   )
 }
 
 function transformEntity(rawEntity: any): Entity {
-  // Use API values directly, fallback to mapping only if missing
+  // Preserve API metadata including orientation
   return {
     id: rawEntity.id,
     type: rawEntity.type,
     emoji: rawEntity.emoji || ENTITY_EMOJI_MAP[rawEntity.type] || '❓',
-    position: { row: rawEntity.row, col: rawEntity.col },
+    row: rawEntity.row,
+    col: rawEntity.col,
     metadata: {
-      name: rawEntity.metadata?.action || rawEntity.type.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-      risk_level: rawEntity.metadata?.is_star ? 'high' : 'low',
-      is_occluded: false
+      is_star: rawEntity.metadata?.is_star ?? false,
+      is_ego: rawEntity.metadata?.is_ego ?? false,
+      is_violation: rawEntity.metadata?.is_violation ?? false,
+      action: rawEntity.metadata?.action ?? '',
+      orientation: rawEntity.metadata?.orientation ?? ''
     }
   }
 }

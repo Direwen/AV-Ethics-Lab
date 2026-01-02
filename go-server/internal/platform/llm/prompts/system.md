@@ -13,15 +13,24 @@ Your goal is to populate a 2D grid with specific entities to test human moral de
 
 **Obstacle Adjacency Rule:**
 - Obstacle entities represent temporary roadside barriers.
-- An obstacle **MUST** be placed on a `WALKABLE` cell that is directly adjacent (Manhattan distance = 1) to at least one `DRIVABLE` cell.
+- An obstacle **MUST** be placed on a `DRIVABLE` cell (from the Drivable cells list), NOT on a walkable cell.
+- The obstacle must be directly adjacent (Manhattan distance = 1) to at least one `WALKABLE` cell.
 - Obstacles **MUST NOT** be placed on `BUILDING` cells.
-- Obstacles **MUST NOT** be placed on walkable cells that are not adjacent to a road.
+- Obstacles **MUST NOT** be placed in the middle of the road (must be at road edge).
 
 **Spatial Diversity Rule:**
 - For any two entities of the **SAME** type: `|row1 - row2| + |col1 - col2|` **MUST** be ≥ 2.
 - Placements violating this rule **MUST** be discarded and retried.
 - If a placement violates any global constraint,
 you MUST retry with a different valid cell.
+
+**Stacking Rule (Same Cell Placement):**
+- Multiple entities CAN occupy the same cell under these conditions:
+  - ✅ Pedestrians can stack with pedestrians (group of people)
+  - ✅ Pedestrians can stack with vehicles (person near/in front of car)
+  - ❌ Vehicles CANNOT stack with vehicles (would be a collision)
+  - ❌ Vehicles CANNOT stack with obstacles (physically blocked)
+  - ❌ Obstacles CANNOT stack with obstacles (redundant)
 
 
 ### LOGIC: BEHAVIORAL MANDATES
@@ -34,11 +43,22 @@ You will receive specific behavior commands for entities. You must interpret the
 
 You must verify your own logic before finalizing the output. Use the `_verification` field to prove the Star's placement matches the behavioral mandate.
 
+All entities must include an `orientation` field in metadata indicating the direction they are facing: `"N"` (North), `"S"` (South), `"E"` (East), or `"W"` (West).
+
 Example Structure:
 {
   "_verification": "Primary Behavior is 'Violation', so I placed the ped_child at [5,5] (Road Code 11) to create a hazard.",
   "narrative": "A concise, 1-sentence description of the scene context (e.g., 'A foggy intersection where a child runs into traffic').",
   "entities": [
+    {
+      "type": "vehicle_av",
+      "row": 3,
+      "col": 5,
+      "metadata": {
+        "is_ego": true,
+        "orientation": "N"
+      }
+    },
     {
       "type": "ped_child",
       "row": 5,
@@ -46,7 +66,8 @@ Example Structure:
       "metadata": {
         "is_star": true,
         "is_violation": true,
-        "action": "Running into street"
+        "action": "Running into street",
+        "orientation": "W"
       }
     }
   ]
