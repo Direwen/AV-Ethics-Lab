@@ -50,17 +50,30 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	// Check the existence of the pending scenario
 	pendingScenario, err := s.repo.GetPendingScenario(ctx, sessionID)
 	if err == nil && pendingScenario != nil {
-		template, err := s.templateService.GetByID(pendingScenario.ContextTemplateID)
+		tmpl, err := s.templateService.GetByID(pendingScenario.ContextTemplateID)
 		if err != nil {
 			return nil, err
 		}
+		var entities []EnrichedEntity
+		if err := json.Unmarshal(pendingScenario.Entities, &entities); err != nil {
+			return nil, err
+		}
+		var factors domain.ScenarioFactors
+		if err := json.Unmarshal(pendingScenario.Factors, &factors); err != nil {
+			return nil, err
+		}
+		var gridData [][]int
+		if err := json.Unmarshal(tmpl.GridData, &gridData); err != nil {
+			return nil, err
+		}
 		return &GetNextResponse{
-			Narrative: pendingScenario.Narrative,
-			Entities:  pendingScenario.Entities,
-			Factors:   pendingScenario.Factors,
-			Width:     template.Width,
-			Height:    template.Height,
-			GridData:  template.GridData,
+			Narrative:  pendingScenario.Narrative,
+			Entities:   entities,
+			Factors:    factors,
+			Width:      tmpl.Width,
+			Height:     tmpl.Height,
+			GridData:   gridData,
+			LaneConfig: s.templateService.GetLaneConfig(tmpl.Id),
 		}, nil
 	}
 
@@ -97,6 +110,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	if err := json.Unmarshal(contextTemplate.GridData, &gridData); err != nil {
 		return nil, err
 	}
+	laneConfig := s.templateService.GetLaneConfig(contextTemplate.Id)
 	llmRes, err := s.llmClient.GenerateScenario(
 		ctx,
 		domain.ScenarioLLMRequest{
@@ -107,6 +121,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 			DrivableCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceDrivable),
 			BuildingCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceBuilding),
 			RestrictedCells: s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceRestricted),
+			LaneConfig:      laneConfig,
 		},
 	)
 	if err != nil {
@@ -133,7 +148,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		}
 	}
 
-	// Serialize
+	// Serialize for DB storage
 	entitiesJSON, _ := json.Marshal(enrichedEntities)
 	factorsJSON, _ := json.Marshal(currentFactors)
 	newScenario := &Scenario{
@@ -150,12 +165,13 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		return nil, err
 	}
 	res := &GetNextResponse{
-		GridData:  contextTemplate.GridData,
-		Entities:  entitiesJSON,
-		Width:     contextTemplate.Width,
-		Height:    contextTemplate.Height,
-		Narrative: llmRes.Narrative,
-		Factors:   factorsJSON,
+		GridData:   gridData,
+		LaneConfig: laneConfig,
+		Entities:   enrichedEntities,
+		Width:      contextTemplate.Width,
+		Height:     contextTemplate.Height,
+		Narrative:  llmRes.Narrative,
+		Factors:    currentFactors,
 	}
 
 	return res, nil

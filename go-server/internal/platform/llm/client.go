@@ -35,7 +35,7 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
-		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells", "RestrictedCells"},
+		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells", "RestrictedCells", "LaneConfig"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
 	// Inject Data into Prompt Template
@@ -47,6 +47,7 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 		"DrivableCells":   formatCellsForLLM(req.DrivableCells),
 		"BuildingCells":   formatCellsForLLM(req.BuildingCells),
 		"RestrictedCells": formatCellsForLLM(req.RestrictedCells),
+		"LaneConfig":      formatLaneConfigForLLM(req.LaneConfig),
 	})
 	if err != nil {
 		return nil, err
@@ -141,5 +142,13 @@ func formatCellsForLLM(cells [][2]int) string {
 		return "[]"
 	}
 	result, _ := json.Marshal(cells)
+	return string(result)
+}
+
+func formatLaneConfigForLLM(laneConfig domain.LaneConfigMap) string {
+	if laneConfig == nil {
+		return "{}"
+	}
+	result, _ := json.Marshal(laneConfig)
 	return string(result)
 }

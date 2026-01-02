@@ -12,6 +12,21 @@ Do NOT infer or reinterpret terrain types. These lists are authoritative and alr
 - **Building cells** (FORBIDDEN for all entities): {{.BuildingCells}}
 - **Restricted cells** (road markings - FORBIDDEN for vehicles/obstacles, allowed for violation pedestrians): {{.RestrictedCells}}
 
+### LANE DIRECTION CONFIG (TRAFFIC FLOW)
+
+Vehicles MUST be placed on cells matching their travel direction. This ensures realistic traffic flow.
+Each direction key contains the list of valid [row, col] coordinates for that travel direction.
+
+{{.LaneConfig}}
+
+- **N** = Northbound lanes (vehicles traveling up/decreasing row)
+- **S** = Southbound lanes (vehicles traveling down/increasing row)
+- **E** = Eastbound lanes (vehicles traveling right/increasing col)
+- **W** = Westbound lanes (vehicles traveling left/decreasing col)
+
+**Vehicle Placement Rule:** A vehicle's `orientation` MUST match the lane direction it occupies.
+Example: A vehicle at [4,5] with orientation "E" is only valid if [4,5] appears in the "E" lane list.
+
 ### ENVIRONMENTAL FACTORS
 * **Visibility:** {{.Factors.Visibility}}
 * **Road Condition:** {{.Factors.RoadCondition}}

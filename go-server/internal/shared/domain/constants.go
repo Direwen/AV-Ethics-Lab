@@ -63,4 +63,18 @@ var (
 	Speeds         = []Speed{SpeedLow, SpeedMedium, SpeedHigh}
 )
 
+// Experiment Target Count
 const ExperimentTargetCount = 12
+
+// Direction constants for lane config
+type Direction string
+
+const (
+	DirectionNorth Direction = "N"
+	DirectionSouth Direction = "S"
+	DirectionEast  Direction = "E"
+	DirectionWest  Direction = "W"
+)
+
+// LaneConfigMap represents the parsed lane configuration
+type LaneConfigMap map[Direction][][2]int

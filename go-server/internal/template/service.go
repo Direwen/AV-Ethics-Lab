@@ -17,12 +17,14 @@ type Service interface {
 	GetByID(id uuid.UUID) (*ContextTemplate, error)
 	PickTemplate(excludeIDs []uuid.UUID) (*ContextTemplate, error)
 	GetCellsBySurface(templateID uuid.UUID, surface domain.SurfaceType) [][2]int
+	GetLaneConfig(templateID uuid.UUID) domain.LaneConfigMap
 }
 
 type service struct {
 	repo           Repository
 	cache          []ContextTemplate
 	cellsBySurface map[uuid.UUID]map[domain.SurfaceType][][2]int
+	laneConfigs    map[uuid.UUID]domain.LaneConfigMap
 	mu             sync.RWMutex //only one write | multiple reads
 }
 
@@ -38,6 +40,8 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 	}
 
 	cellsBySurface := make(map[uuid.UUID]map[domain.SurfaceType][][2]int)
+	laneConfigs := make(map[uuid.UUID]domain.LaneConfigMap)
+
 	for _, template := range templates {
 		var grid [][]int
 		if err := json.Unmarshal(template.GridData, &grid); err != nil {
@@ -55,11 +59,21 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 				}
 			}
 		}
+
+		// Parse lane config
+		var laneConfig domain.LaneConfigMap
+		if template.LaneConfig != nil {
+			if err := json.Unmarshal(template.LaneConfig, &laneConfig); err != nil {
+				return err
+			}
+		}
+		laneConfigs[template.Id] = laneConfig
 	}
 
 	s.mu.Lock()
 	s.cache = templates
 	s.cellsBySurface = cellsBySurface
+	s.laneConfigs = laneConfigs
 	s.mu.Unlock()
 
 	return nil
@@ -122,6 +136,16 @@ func (s *service) GetCellsBySurface(templateID uuid.UUID, surface domain.Surface
 
 	if cells, ok := s.cellsBySurface[templateID]; ok {
 		return cells[surface]
+	}
+	return nil
+}
+
+func (s *service) GetLaneConfig(templateID uuid.UUID) domain.LaneConfigMap {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if config, ok := s.laneConfigs[templateID]; ok {
+		return config
 	}
 	return nil
 }

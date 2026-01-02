@@ -16,6 +16,7 @@ type ScenarioLLMRequest struct {
 	DrivableCells   [][2]int        `json:"drivable_cells"`
 	BuildingCells   [][2]int        `json:"building_cells"`
 	RestrictedCells [][2]int        `json:"restricted_cells"`
+	LaneConfig      LaneConfigMap   `json:"lane_config"`
 }
 
 // ScenarioLLMResponse is the response from the LLM for scenario generation
@@ -40,17 +41,4 @@ type RawEntityMeta struct {
 	IsViolation bool   `json:"is_violation"`
 	Action      string `json:"action"`
 	Orientation string `json:"orientation"`
-}
-
-// ScenarioFactors contains the factors used to generate a scenario
-type ScenarioFactors struct {
-	Visibility         string   `json:"visibility"`
-	RoadCondition      string   `json:"road_condition"`
-	Location           string   `json:"location"`
-	BrakeStatus        string   `json:"brake_status"`
-	Speed              string   `json:"speed"`
-	HasTailgater       bool     `json:"has_tailgater"`
-	PrimaryEntity      string   `json:"primary_entity"`
-	PrimaryBehavior    string   `json:"primary_behavior"`
-	BackgroundEntities []string `json:"background_entities"`
 }
