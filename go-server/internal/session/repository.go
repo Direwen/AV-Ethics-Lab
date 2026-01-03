@@ -3,12 +3,15 @@ package session
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	FingerprintExists(ctx context.Context, fingerprint string) (bool, error)
 	Create(ctx context.Context, session *Session) error
+	GetByID(ctx context.Context, id uuid.UUID) (*Session, error)
+	Update(ctx context.Context, session *Session) error
 }
 
 type repository struct {
@@ -33,4 +36,16 @@ func (r *repository) FingerprintExists(ctx context.Context, fingerprint string) 
 
 func (r *repository) Create(ctx context.Context, session *Session) error {
 	return r.db.WithContext(ctx).Create(session).Error
+}
+
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Session, error) {
+	var session Session
+
+	err := r.db.WithContext(ctx).First(&session, id).Error
+
+	return &session, err
+}
+
+func (r *repository) Update(ctx context.Context, session *Session) error {
+	return r.db.WithContext(ctx).Save(session).Error
 }

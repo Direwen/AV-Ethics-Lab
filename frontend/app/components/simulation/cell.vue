@@ -1,7 +1,7 @@
 <template>
     <div
         ref="cellRef"
-        class="relative w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-12 lg:h-12 flex items-center justify-center transition-all duration-30"
+        class="relative w-4 h-3 sm:w-6 sm:h-3 md:w-8 md:h-4 lg:w-12 lg:h-8 flex items-center justify-center transition-all duration-30"
         :class="[
             definition?.class, 
             isInteractive ? 'cursor-pointer' : '',

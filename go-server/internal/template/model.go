@@ -7,9 +7,10 @@ import (
 
 type ContextTemplate struct {
 	model.BaseModel
-	Name     string         `gorm:"not null" json:"name"`
-	Width    int            `gorm:"type:int;not null" json:"width"`
-	Height   int            `gorm:"type:int;not null" json:"height"`
-	GridData datatypes.JSON `gorm:"type:jsonb;not null" json:"grid_data"`
-	Meta     datatypes.JSON `gorm:"type:jsonb" json:"meta"`
+	Name       string         `gorm:"not null" json:"name"`
+	Width      int            `gorm:"type:int;not null" json:"width"`
+	Height     int            `gorm:"type:int;not null" json:"height"`
+	GridData   datatypes.JSON `gorm:"type:jsonb;not null" json:"grid_data"`
+	LaneConfig datatypes.JSON `gorm:"type:jsonb" json:"lane_config"` // Direction -> list of [row, col] coordinates
+	Meta       datatypes.JSON `gorm:"type:jsonb" json:"meta"`
 }
