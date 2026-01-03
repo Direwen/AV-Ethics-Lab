@@ -17,9 +17,41 @@
 
     <div class="flex-1 flex flex-col items-center">
       <div class="flex flex-col items-center p-4 space-y-4">
+        <!-- Factors Badge Panel -->
+        <div v-if="customData?.factors" class="flex flex-wrap gap-2 justify-center">
+          <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 flex items-center gap-1">
+            {{ getVisibilityIcon(customData.factors.visibility) }} {{ customData.factors.visibility }}
+          </span>
+          <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 flex items-center gap-1">
+            {{ getRoadConditionIcon(customData.factors.road_condition) }} {{ customData.factors.road_condition }}
+          </span>
+          <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 flex items-center gap-1">
+            {{ getSpeedIcon(customData.factors.speed) }} {{ customData.factors.speed }}
+          </span>
+          <span 
+            class="px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1"
+            :class="customData.factors.brake_status === 'Active' 
+              ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+              : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200'"
+          >
+            {{ getBrakeIcon(customData.factors.brake_status) }} Brake: {{ customData.factors.brake_status }}
+          </span>
+          <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1">
+            📍 {{ customData.factors.location }}
+          </span>
+          <span 
+            v-if="customData.factors.has_tailgater"
+            class="px-3 py-1.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 flex items-center gap-1"
+          >
+            🚙 Tailgater
+          </span>
+        </div>
+
+        <!-- Map with visual overlay -->
         <div 
           v-if="customData"
-          class="inline-block shadow-2xl border-4 border-gray-900 bg-gray-900 rounded-lg overflow-hidden"
+          class="inline-block shadow-2xl border-4 border-gray-900 bg-gray-900 rounded-lg overflow-hidden transition-all duration-300"
+          :class="mapOverlayClasses"
         >
           <div v-for="(row, rIndex) in customData.grid" :key="rIndex" class="flex">
             <div v-for="(cellCode, cIndex) in row" :key="cIndex" class="relative">
@@ -64,8 +96,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Right Column: JSON Input -->
     
   </div>
 </template>
@@ -78,6 +108,18 @@ import type { Entity } from '~/types/simulation'
 
 const { getCellDefinition } = useCellDefinition()
 
+interface ScenarioFactors {
+  visibility: string
+  road_condition: string
+  location: string
+  brake_status: string
+  speed: string
+  has_tailgater: boolean
+  primary_entity: string
+  primary_behavior: string
+  background_entities: string[]
+}
+
 interface CustomScenarioData {
   grid: number[][]
   entities: Entity[]
@@ -85,6 +127,7 @@ interface CustomScenarioData {
   width: number
   height: number
   laneConfig: LaneConfig
+  factors: ScenarioFactors | null
 }
 
 const jsonInput = ref('')
@@ -93,6 +136,65 @@ const customData = ref<CustomScenarioData | null>(null)
 
 const laneConfig = computed(() => customData.value?.laneConfig || { W: [], E: [], N: [], S: [] })
 const { getLaneDirection, getLaneArrow, getLaneArrowClass, activeDirections } = useLaneDirection(laneConfig)
+
+// Visual overlay classes based on factors
+const mapOverlayClasses = computed(() => {
+  const factors = customData.value?.factors
+  if (!factors) return ''
+  
+  const classes: string[] = []
+  
+  // Visibility effects (matching backend: Clear, Fog, Night, Rain)
+  if (factors.visibility === 'Night') classes.push('brightness-[0.6]')
+  else if (factors.visibility === 'Fog') classes.push('brightness-90 blur-[0.5px]')
+  else if (factors.visibility === 'Rain') classes.push('brightness-[0.85]')
+  // Clear = no effect
+  
+  // Road condition effects (matching backend: Dry, Wet, Icy)
+  if (factors.road_condition === 'Wet') classes.push('contrast-[0.95] saturate-110')
+  else if (factors.road_condition === 'Icy') classes.push('saturate-50 brightness-105')
+  // Dry = no effect
+  
+  return classes.join(' ')
+})
+
+// Icon helpers for factors (matching backend constants)
+function getVisibilityIcon(visibility: string): string {
+  const icons: Record<string, string> = {
+    'Clear': '☀️',
+    'Fog': '�️',
+    'Night': '🌙',
+    'Rain': '🌧️'
+  }
+  return icons[visibility] || '👁️'
+}
+
+function getRoadConditionIcon(condition: string): string {
+  const icons: Record<string, string> = {
+    'Dry': '🛣️',
+    'Wet': '💧',
+    'Icy': '🧊'
+  }
+  return icons[condition] || '🛣️'
+}
+
+function getSpeedIcon(speed: string): string {
+  const icons: Record<string, string> = {
+    'Low': '🐢',
+    'Medium': '🚕',
+    'High': '🏎️'
+  }
+  return icons[speed] || '🚕'
+}
+
+function getBrakeIcon(status: string): string {
+  const icons: Record<string, string> = {
+    'Active': '✅',
+    'Fade': '⚠️',
+    'Failed': '🚨'
+  }
+  return icons[status] || '🛞'
+}
 
 function getEntitiesAt(row: number, col: number) {
   if (!customData.value) return []
@@ -132,7 +234,8 @@ function loadJson() {
       narrative: data.narrative || '',
       width: data.width || data.grid_data[0]?.length || 0,
       height: data.height || data.grid_data.length,
-      laneConfig: data.lane_config || { W: [], E: [], N: [], S: [] }
+      laneConfig: data.lane_config || { W: [], E: [], N: [], S: [] },
+      factors: data.factors || null
     }
   } catch (e: any) {
     errorMessage.value = e.message || 'Failed to parse JSON'

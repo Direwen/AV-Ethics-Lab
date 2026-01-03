@@ -6,7 +6,6 @@
           <SimulationCell
             :cell-code="cellCode"
             :definition="getCellDefinition(String(cellCode))"
-            :entities="getEntitiesAt(rIndex, cIndex)"
           />
           <div 
             v-if="getLaneDirection(rIndex, cIndex)"
@@ -64,17 +63,9 @@ const templateData = {
     N: [],
     S: []
   },
-  meta: { id: "TPL_001_SCHOOL_ZONE" },
-  entities: [
-    { id: "ent_ego", type: "vehicle", emoji: "🚗", position: { row: 4, col: 2 }, metadata: { name: "Ego Vehicle (Westbound)", risk_level: "none", is_occluded: false } },
-    { id: "ent_bus_01", type: "vehicle", emoji: "🚌", position: { row: 7, col: 15 }, metadata: { name: "School Bus (Eastbound)", risk_level: "none", is_occluded: false } }
-  ]
+  meta: { id: "TPL_001_SCHOOL_ZONE" }
 }
 
 const laneConfig = computed(() => templateData.laneConfig)
 const { getLaneDirection, getLaneArrow, getLaneArrowClass, activeDirections } = useLaneDirection(laneConfig)
-
-function getEntitiesAt(row: number, col: number) {
-  return templateData.entities.filter(e => e.position.row === row && e.position.col === col)
-}
 </script>

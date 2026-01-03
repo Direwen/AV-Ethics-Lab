@@ -6,7 +6,6 @@
           <SimulationCell
             :cell-code="cellCode"
             :definition="getCellDefinition(String(cellCode))"
-            :entities="getEntitiesAt(rIndex, cIndex)"
           />
           <div 
             v-if="getLaneDirection(rIndex, cIndex)"
@@ -62,19 +61,9 @@ const templateData = {
     S: [[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[6,9],[7,9],[8,9],[9,9]],
     N: [[0,11],[1,11],[2,11],[3,11],[4,11],[5,11],[6,11],[7,11],[8,11],[9,11]]
   },
-  meta: { id: "TPL_003_T_JUNCTION" },
-  entities: [
-    { id: "ent_car_01", type: "vehicle", emoji: "🚗", position: { row: 2, col: 9 }, metadata: { name: "Car (Southbound)", risk_level: "none", is_occluded: false } },
-    { id: "ent_truck_01", type: "vehicle", emoji: "🚚", position: { row: 7, col: 4 }, metadata: { name: "Truck (Westbound)", risk_level: "none", is_occluded: false } },
-    { id: "ent_car_02", type: "vehicle", emoji: "🚙", position: { row: 9, col: 16 }, metadata: { name: "SUV (Eastbound)", risk_level: "none", is_occluded: false } },
-    { id: "ent_bus_01", type: "vehicle", emoji: "🚌", position: { row: 6, col: 11 }, metadata: { name: "Bus (Northbound)", risk_level: "none", is_occluded: false } }
-  ]
+  meta: { id: "TPL_003_T_JUNCTION" }
 }
 
 const laneConfig = computed(() => templateData.laneConfig)
 const { getLaneDirection, getLaneArrow, getLaneArrowClass, activeDirections } = useLaneDirection(laneConfig)
-
-function getEntitiesAt(row: number, col: number) {
-  return templateData.entities.filter(e => e.position.row === row && e.position.col === col)
-}
 </script>
