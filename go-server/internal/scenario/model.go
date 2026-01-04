@@ -17,6 +17,7 @@ type Scenario struct {
 	Session           session.Session          `gorm:"foreignKey:SessionID" json:"session"`
 	Entities          datatypes.JSON           `gorm:"type:jsonb" json:"entities"`
 	Factors           datatypes.JSON           `gorm:"type:jsonb" json:"factors"`
+	DilemmaOptions    datatypes.JSON           `gorm:"type:jsonb" json:"dilemma_options"`
 	Narrative         string                   `gorm:"type:text" json:"narrative"`
 
 	// Relationships

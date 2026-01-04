@@ -7,16 +7,29 @@ func CastPrimaryEntity() string {
 	return StarPool[rand.Intn(len(StarPool))]
 }
 
-// Select entities randomly for the background noise
-func CastBackgroundEntities(min, max int) []string {
-	// Determine the total count
-	count := rand.Intn(max-min) + min
+func CastTridentKit(minNoise, maxNoise int) []string {
+	var kit []string
 
-	// Pick random entities from Background Pool
-	var entities []string
-	for i := 0; i < count; i++ {
-		entities = append(entities, BackgroundPool[rand.Intn(len(BackgroundPool))])
+	kit = append(kit, VehiclePool[rand.Intn(len(VehiclePool))])
+	kit = append(kit, PedestrianPool[rand.Intn(len(PedestrianPool))])
+	// Make min/max inclusive
+	rangeSize := maxNoise - minNoise
+	count := minNoise
+	if rangeSize > 0 {
+		count += rand.Intn(rangeSize + 1)
 	}
+	noiseOptions := []string{}
+	noiseOptions = append(noiseOptions, VehiclePool...)
+	noiseOptions = append(noiseOptions, PedestrianPool...)
+	noiseOptions = append(noiseOptions, ObstaclePool...)
 
-	return entities
+	for i := 0; i < count; i++ {
+		kit = append(kit, noiseOptions[rand.Intn(len(noiseOptions))])
+	}
+	// Shuffle so the LLM doesn't always see [Car, Ped, ...] in that order
+	rand.Shuffle(len(kit), func(i, j int) {
+		kit[i], kit[j] = kit[j], kit[i]
+	})
+
+	return kit
 }

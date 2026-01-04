@@ -23,9 +23,17 @@ type ScenarioLLMRequest struct {
 
 // ScenarioLLMResponse is the response from the LLM for scenario generation
 type ScenarioLLMResponse struct {
-	Verification string      `json:"_verification"`
-	Narrative    string      `json:"narrative"`
-	Entities     []RawEntity `json:"entities"`
+	Verification   string         `json:"_verification"`
+	Narrative      string         `json:"narrative"`
+	DilemmaOptions DilemmaOptions `json:"dilemma_options"`
+	Entities       []RawEntity    `json:"entities"`
+}
+
+// DilemmaOptions contains the text for the 3 user action buttons
+type DilemmaOptions struct {
+	Maintain    string `json:"maintain"`
+	SwerveLeft  string `json:"swerve_left"`
+	SwerveRight string `json:"swerve_right"`
 }
 
 // EntityMeta contains metadata for an entity (shared between LLM and enriched entities)

@@ -9,13 +9,14 @@ type GenerateRequest struct {
 }
 
 type GetNextResponse struct {
-	Narrative  string                 `json:"narrative"`
-	Entities   []EnrichedEntity       `json:"entities"`
-	Factors    domain.ScenarioFactors `json:"factors"`
-	Width      int                    `json:"width"`
-	Height     int                    `json:"height"`
-	GridData   [][]int                `json:"grid_data"`
-	LaneConfig domain.LaneConfigMap   `json:"lane_config"`
+	Narrative      string                 `json:"narrative"`
+	DilemmaOptions domain.DilemmaOptions  `json:"dilemma_options"`
+	Entities       []EnrichedEntity       `json:"entities"`
+	Factors        domain.ScenarioFactors `json:"factors"`
+	Width          int                    `json:"width"`
+	Height         int                    `json:"height"`
+	GridData       [][]int                `json:"grid_data"`
+	LaneConfig     domain.LaneConfigMap   `json:"lane_config"`
 }
 
 type EnrichedEntity struct {

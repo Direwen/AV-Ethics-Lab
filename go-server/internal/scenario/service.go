@@ -62,18 +62,23 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		if err := json.Unmarshal(pendingScenario.Factors, &factors); err != nil {
 			return nil, err
 		}
+		var dilemmaOptions domain.DilemmaOptions
+		if err := json.Unmarshal(pendingScenario.DilemmaOptions, &dilemmaOptions); err != nil {
+			return nil, err
+		}
 		var gridData [][]int
 		if err := json.Unmarshal(tmpl.GridData, &gridData); err != nil {
 			return nil, err
 		}
 		return &GetNextResponse{
-			Narrative:  pendingScenario.Narrative,
-			Entities:   entities,
-			Factors:    factors,
-			Width:      tmpl.Width,
-			Height:     tmpl.Height,
-			GridData:   gridData,
-			LaneConfig: s.templateService.GetLaneConfig(tmpl.Id),
+			Narrative:      pendingScenario.Narrative,
+			DilemmaOptions: dilemmaOptions,
+			Entities:       entities,
+			Factors:        factors,
+			Width:          tmpl.Width,
+			Height:         tmpl.Height,
+			GridData:       gridData,
+			LaneConfig:     s.templateService.GetLaneConfig(tmpl.Id),
 		}, nil
 	}
 
@@ -175,10 +180,12 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	// Serialize for DB storage
 	entitiesJSON, _ := json.Marshal(enrichedEntities)
 	factorsJSON, _ := json.Marshal(currentFactors)
+	dilemmaOptionsJSON, _ := json.Marshal(llmRes.DilemmaOptions)
 	newScenario := &Scenario{
 		SessionID:         sessionID,
 		Entities:          entitiesJSON,
 		Factors:           factorsJSON,
+		DilemmaOptions:    dilemmaOptionsJSON,
 		ContextTemplateID: contextTemplate.Id,
 		Narrative:         llmRes.Narrative,
 	}
@@ -189,13 +196,14 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		return nil, err
 	}
 	res := &GetNextResponse{
-		GridData:   gridData,
-		LaneConfig: laneConfig,
-		Entities:   enrichedEntities,
-		Width:      contextTemplate.Width,
-		Height:     contextTemplate.Height,
-		Narrative:  llmRes.Narrative,
-		Factors:    currentFactors,
+		GridData:       gridData,
+		LaneConfig:     laneConfig,
+		Entities:       enrichedEntities,
+		Width:          contextTemplate.Width,
+		Height:         contextTemplate.Height,
+		Narrative:      llmRes.Narrative,
+		DilemmaOptions: llmRes.DilemmaOptions,
+		Factors:        currentFactors,
 	}
 
 	return res, nil

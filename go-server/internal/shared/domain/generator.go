@@ -40,7 +40,7 @@ func GenerateBalancedDesign(count int) []ScenarioFactors {
 		// Background Noise Selection
 		minEntities, _ := strconv.Atoi(os.Getenv("BACKGROUND_ENTITIES_MIN"))
 		maxEntities, _ := strconv.Atoi(os.Getenv("BACKGROUND_ENTITIES_MAX"))
-		backgroundEntities := CastBackgroundEntities(minEntities, maxEntities)
+		backgroundEntities := CastTridentKit(minEntities, maxEntities)
 
 		factors := ScenarioFactors{
 			Visibility:         string(vis),
