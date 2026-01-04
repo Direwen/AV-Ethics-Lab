@@ -20,7 +20,7 @@ type Service interface {
 	GetRandomTridentSpawn(templateID uuid.UUID) (*domain.TridentSpawn, error)
 	GetSurfaceAt(templateID uuid.UUID, row, col int) domain.SurfaceType
 	GetLaneDirectionAt(templateID uuid.UUID, row, col int) domain.Direction
-	EnrichTridentZones(templateID uuid.UUID, zones *domain.TridentZones)
+	CalculateTridentZones(templateID uuid.UUID, spawn domain.TridentSpawn) domain.TridentZones
 }
 
 type service struct {
@@ -30,6 +30,7 @@ type service struct {
 	tridentSpawns   map[uuid.UUID][]domain.TridentSpawn
 	surfaceAt       map[uuid.UUID]map[[2]int]domain.SurfaceType // coord → surface
 	laneDirectionAt map[uuid.UUID]map[[2]int]domain.Direction   // coord → lane direction
+	gridDimensions  map[uuid.UUID][2]int                        // templateID → [height, width]
 	mu              sync.RWMutex
 }
 
@@ -48,6 +49,7 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 	tridentSpawns := make(map[uuid.UUID][]domain.TridentSpawn)
 	surfaceAt := make(map[uuid.UUID]map[[2]int]domain.SurfaceType)
 	laneDirectionAt := make(map[uuid.UUID]map[[2]int]domain.Direction)
+	gridDimensions := make(map[uuid.UUID][2]int)
 
 	for _, template := range templates {
 		var grid [][]int
@@ -55,17 +57,17 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 			return err
 		}
 
+		height := len(grid)
+		width := len(grid[0])
+		gridDimensions[template.Id] = [2]int{height, width}
+
 		surfaceAt[template.Id] = make(map[[2]int]domain.SurfaceType)
 
-		// Build surfaceAt lookup and collect cells by surface for spawn validation
-		cellsBySurface := make(map[domain.SurfaceType][][2]int)
+		// Build surfaceAt lookup
 		for row, cols := range grid {
 			for col, tileID := range cols {
 				if tile, exists := domain.TileRegistry[tileID]; exists {
-					surface := tile.Definition.SurfaceType
-					coord := [2]int{row, col}
-					surfaceAt[template.Id][coord] = surface
-					cellsBySurface[surface] = append(cellsBySurface[surface], coord)
+					surfaceAt[template.Id][[2]int{row, col}] = tile.Definition.SurfaceType
 				}
 			}
 		}
@@ -86,12 +88,13 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 			}
 		}
 
-		// Pre-compute valid trident spawns (uses local cellsBySurface)
+		// Pre-compute valid trident spawns
 		tridentSpawns[template.Id] = s.computeValidSpawns(
-			cellsBySurface,
+			template.Id,
+			surfaceAt[template.Id],
 			laneConfig,
-			len(grid),
-			len(grid[0]),
+			height,
+			width,
 		)
 	}
 
@@ -101,6 +104,7 @@ func (s *service) LoadAllTemplates(ctx context.Context) error {
 	s.tridentSpawns = tridentSpawns
 	s.surfaceAt = surfaceAt
 	s.laneDirectionAt = laneDirectionAt
+	s.gridDimensions = gridDimensions
 	s.mu.Unlock()
 
 	return nil
@@ -205,57 +209,111 @@ func (s *service) GetLaneDirectionAt(templateID uuid.UUID, row, col int) domain.
 	return ""
 }
 
-// EnrichTridentZones fills in Surface and Orientation for each coordinate in zones
-func (s *service) EnrichTridentZones(templateID uuid.UUID, zones *domain.TridentZones) {
+// CalculateTridentZones builds zones with expandable B/C (skips restricted, stops at building)
+func (s *service) CalculateTridentZones(templateID uuid.UUID, spawn domain.TridentSpawn) domain.TridentZones {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	surfaces := s.surfaceAt[templateID]
 	directions := s.laneDirectionAt[templateID]
+	dims := s.gridDimensions[templateID]
+	height, width := dims[0], dims[1]
 
-	enrichZone := func(zone *domain.TridentZone) {
-		for i := range zone.Coordinates {
-			coord := &zone.Coordinates[i]
-			key := [2]int{coord.Row, coord.Col}
-			coord.Surface = surfaces[key]
-			coord.Orientation = directions[key]
+	fRow, fCol, lRow, lCol, rRow, rCol := domain.CalculateTridentZones(spawn)
+
+	const distance = 3 // how far ahead zones start
+	const depth = 3    // how many traversable tiles to collect
+
+	baseRow := spawn.Row + (fRow * distance)
+	baseCol := spawn.Col + (fCol * distance)
+
+	// Zone A: fixed strip forward (drivable + restricted allowed)
+	generateForwardZone := func(startRow, startCol int) domain.TridentZone {
+		coords := make([]domain.EnrichedCoordinate, 0, depth)
+		for i := 0; i < depth; i++ {
+			row := startRow + (fRow * i)
+			col := startCol + (fCol * i)
+			if row < 0 || row >= height || col < 0 || col >= width {
+				break
+			}
+			key := [2]int{row, col}
+			coords = append(coords, domain.EnrichedCoordinate{
+				Coordinate:  domain.Coordinate{Row: row, Col: col},
+				Surface:     surfaces[key],
+				Orientation: directions[key],
+			})
 		}
+		return domain.TridentZone{Coordinates: coords}
 	}
 
-	enrichZone(&zones.ZoneA)
-	enrichZone(&zones.ZoneB)
-	enrichZone(&zones.ZoneC)
+	// Zone B/C: expand perpendicular, skip restricted, collect traversable, stop at building
+	generateSideZone := func(perpRow, perpCol int) domain.TridentZone {
+		coords := make([]domain.EnrichedCoordinate, 0, depth)
+
+		// For each forward step, scan perpendicular until we find traversable
+		for i := 0; i < depth; i++ {
+			fwdRow := baseRow + (fRow * i)
+			fwdCol := baseCol + (fCol * i)
+
+			// Scan perpendicular from forward position
+			for offset := 1; offset <= 5; offset++ { // max 5 tiles perpendicular
+				row := fwdRow + (perpRow * offset)
+				col := fwdCol + (perpCol * offset)
+
+				if row < 0 || row >= height || col < 0 || col >= width {
+					break // out of bounds
+				}
+
+				key := [2]int{row, col}
+				surface := surfaces[key]
+
+				if surface == domain.SurfaceBuilding {
+					break // hit wall, stop scanning this direction
+				}
+				if surface == domain.SurfaceRestricted {
+					continue // skip yellow lines
+				}
+				// Found traversable (drivable or walkable)
+				coords = append(coords, domain.EnrichedCoordinate{
+					Coordinate:  domain.Coordinate{Row: row, Col: col},
+					Surface:     surface,
+					Orientation: directions[key],
+				})
+				break // found one for this forward step, move to next
+			}
+		}
+		return domain.TridentZone{Coordinates: coords}
+	}
+
+	return domain.TridentZones{
+		ZoneA: generateForwardZone(baseRow, baseCol),
+		ZoneB: generateSideZone(lRow, lCol),
+		ZoneC: generateSideZone(rRow, rCol),
+	}
 }
 
-// computeValidSpawns finds valid trident spawn points using pre-indexed surface data
+// computeValidSpawns finds valid trident spawn points
 func (s *service) computeValidSpawns(
-	cellsBySurface map[domain.SurfaceType][][2]int,
+	templateID uuid.UUID,
+	surfaceAt map[[2]int]domain.SurfaceType,
 	laneConfig domain.LaneConfigMap,
 	height, width int,
 ) []domain.TridentSpawn {
 	var validSpawns []domain.TridentSpawn
 
-	// Build lookup sets for O(1) surface checks
-	drivableSet := s.coordSet(cellsBySurface[domain.SurfaceDrivable])
-	walkableSet := s.coordSet(cellsBySurface[domain.SurfaceWalkable])
-	restrictedSet := s.coordSet(cellsBySurface[domain.SurfaceRestricted])
-
-	// Road = drivable + restricted (yellow lines are still road)
-	roadSet := s.mergeCoordSets(drivableSet, restrictedSet)
-	// Traversable = anything that's not a building
-	traversableSet := s.mergeCoordSets(drivableSet, walkableSet, restrictedSet)
-
-	// Only check lane cells — direction comes from lane config
 	for direction, coords := range laneConfig {
 		for _, coord := range coords {
+			// AV must spawn on drivable (not restricted)
+			if surfaceAt[coord] != domain.SurfaceDrivable {
+				continue
+			}
+
 			spawn := domain.TridentSpawn{
 				Coordinate:  domain.Coordinate{Row: coord[0], Col: coord[1]},
 				Orientation: direction,
 			}
 
-			zones := domain.CalculateTridentZones(spawn)
-
-			if s.IsValidTrident(zones, roadSet, traversableSet, height, width) {
+			if s.isValidSpawn(spawn, surfaceAt, height, width) {
 				validSpawns = append(validSpawns, spawn)
 			}
 		}
@@ -264,60 +322,69 @@ func (s *service) computeValidSpawns(
 	return validSpawns
 }
 
-// isValidTrident checks if all three zones land on valid terrain
-func (s *service) IsValidTrident(
-	zones domain.TridentZones,
-	roadSet, traversableSet map[[2]int]bool,
+// isValidSpawn checks if spawn point produces valid trident zones
+func (s *service) isValidSpawn(
+	spawn domain.TridentSpawn,
+	surfaceAt map[[2]int]domain.SurfaceType,
 	height, width int,
 ) bool {
-	// Zone A (forward): must be road
-	for _, coord := range zones.ZoneA.Coordinates {
-		if !s.inBounds(coord.Coordinate, height, width) || !roadSet[[2]int{coord.Row, coord.Col}] {
+	fRow, fCol, lRow, lCol, rRow, rCol := domain.CalculateTridentZones(spawn)
+
+	const distance = 3
+	const depth = 3
+
+	baseRow := spawn.Row + (fRow * distance)
+	baseCol := spawn.Col + (fCol * distance)
+
+	// Check Zone A: all cells must be road (drivable or restricted) and in bounds
+	for i := 0; i < depth; i++ {
+		row := baseRow + (fRow * i)
+		col := baseCol + (fCol * i)
+		if row < 0 || row >= height || col < 0 || col >= width {
+			return false
+		}
+		surface := surfaceAt[[2]int{row, col}]
+		if surface != domain.SurfaceDrivable && surface != domain.SurfaceRestricted {
 			return false
 		}
 	}
 
-	// Zone B (left): must be traversable
-	for _, coord := range zones.ZoneB.Coordinates {
-		if !s.inBounds(coord.Coordinate, height, width) || !traversableSet[[2]int{coord.Row, coord.Col}] {
-			return false
+	// Check Zone B and C: must find at least 1 traversable tile per zone
+	checkSideZone := func(perpRow, perpCol int) bool {
+		foundTraversable := 0
+		for i := 0; i < depth; i++ {
+			fwdRow := baseRow + (fRow * i)
+			fwdCol := baseCol + (fCol * i)
+
+			for offset := 1; offset <= 5; offset++ {
+				row := fwdRow + (perpRow * offset)
+				col := fwdCol + (perpCol * offset)
+
+				if row < 0 || row >= height || col < 0 || col >= width {
+					break
+				}
+
+				surface := surfaceAt[[2]int{row, col}]
+				if surface == domain.SurfaceBuilding {
+					break
+				}
+				if surface == domain.SurfaceRestricted {
+					continue
+				}
+				// Found traversable
+				foundTraversable++
+				break
+			}
 		}
+		return foundTraversable >= depth // need all 3 forward positions to have a side tile
 	}
 
-	// Zone C (right): must be traversable
-	for _, coord := range zones.ZoneC.Coordinates {
-		if !s.inBounds(coord.Coordinate, height, width) || !traversableSet[[2]int{coord.Row, coord.Col}] {
-			return false
-		}
+	if !checkSideZone(lRow, lCol) {
+		return false
+	}
+	if !checkSideZone(rRow, rCol) {
+		return false
 	}
 
 	return true
-}
-
-// coordSet converts a slice of coordinates to a map for O(1) lookup
-func (s *service) coordSet(coords [][2]int) map[[2]int]bool {
-	set := make(map[[2]int]bool, len(coords))
-	for _, c := range coords {
-		set[c] = true
-	}
-	return set
-}
-
-// mergeCoordSets combines multiple coordinate sets into one
-func (s *service) mergeCoordSets(sets ...map[[2]int]bool) map[[2]int]bool {
-	total := 0
-	for _, set := range sets {
-		total += len(set)
-	}
-	merged := make(map[[2]int]bool, total)
-	for _, set := range sets {
-		for k := range set {
-			merged[k] = true
-		}
-	}
-	return merged
-}
-
-func (s *service) inBounds(coord domain.Coordinate, height, width int) bool {
-	return coord.Row >= 0 && coord.Row < height && coord.Col >= 0 && coord.Col < width
 }

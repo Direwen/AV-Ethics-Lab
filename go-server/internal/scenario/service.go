@@ -110,9 +110,8 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	if err != nil {
 		return nil, errors.New("failed to get a trident spawn point")
 	}
-	// Calc and enrich Trident Zones
-	tridentZones := domain.CalculateTridentZones(*tridentSpawn)
-	s.templateService.EnrichTridentZones(contextTemplate.Id, &tridentZones)
+	// Calculate Trident Zones (with expandable B/C)
+	tridentZones := s.templateService.CalculateTridentZones(contextTemplate.Id, *tridentSpawn)
 
 	// Build Scenario LLM Request
 	var gridData [][]int
