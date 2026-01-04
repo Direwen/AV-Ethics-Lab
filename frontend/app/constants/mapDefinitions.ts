@@ -21,8 +21,8 @@ export const CELL_DEFINITIONS: Record<string, CellDefinition> = {
 
     // ROAD MARKINGS
     "12": { name: "Yellow Line Dash", class: "yellow-dash-line-h", isInteractive: true },
-    "13": { name: "Double Yellow Horizontal", class: "bg-gray-800 border-y-2 border-yellow-400", isInteractive: true },
-    "14": { name: "Double Yellow Vertical", class: "bg-gray-800 border-x-2 border-yellow-400", isInteractive: true },
+    "13": { name: "Double Yellow Horizontal", class: "bg-gray-800 border-y-2 border-yellow-400 bg-yellow-300", isInteractive: true },
+    "14": { name: "Double Yellow Vertical", class: "bg-gray-800 border-x-2 border-yellow-400 bg-yellow-300", isInteractive: true },
 
     // CROSSWALKS
     "15": { name: "Crosswalk Vertical", class: "crosswalk-v", isInteractive: true },

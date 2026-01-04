@@ -41,6 +41,19 @@ Each coordinate in a zone has a `surface` field. Use it to determine valid place
 
 **CRITICAL:** NEVER place a Vehicle on a `walkable` surface. NEVER place a Pedestrian on a `drivable` surface unless they are jaywalking (violation).
 
+**3. Orientation & Stacking Rules**
+
+- If a coordinate has an `orientation` (e.g., "N", "S"), entities MUST use that orientation.
+- If a coordinate has NO orientation (empty string), entities can face any direction.
+- Multiple entities CAN occupy the same tile (e.g., crowd on sidewalk, traffic jam). Keep it realistic:
+  - Sidewalks: 2-3 pedestrians max per tile.
+  - Roads: Only stack if stopped/crashed vehicles make sense.
+
+**4. Depth Variation**
+
+- Avoid placing all entities at the same row/column distance from the AV.
+- Stagger placements across the zone to create realistic depth (e.g., one entity closer, another further back).
+
 ### DILEMMA TEXT GENERATION
 
 Generate text for the 3 user buttons:

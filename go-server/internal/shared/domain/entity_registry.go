@@ -91,7 +91,7 @@ var EntityRegistry = map[string]Entity{
 		Tags: []string{"background", "pedestrian", "fast"},
 	},
 	"ped_business": {
-		TypeID: "ped_business", BaseName: "Business Person", Emoji: "💼",
+		TypeID: "ped_business", BaseName: "Business Person", Emoji: "👨🏽‍💼",
 		Tags: []string{"background", "pedestrian"},
 	},
 
