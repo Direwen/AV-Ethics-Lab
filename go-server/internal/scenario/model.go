@@ -3,7 +3,6 @@ package scenario
 import (
 	"github.com/direwen/go-server/internal/response"
 	"github.com/direwen/go-server/internal/session"
-	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/shared/model"
 	"github.com/direwen/go-server/internal/template"
 	"github.com/google/uuid"
@@ -23,6 +22,3 @@ type Scenario struct {
 	// Relationships
 	Response response.Response `gorm:"foreignKey:ScenarioID" json:"response"`
 }
-
-// ScenarioFactors is an alias to the shared domain type
-type ScenarioFactors = domain.ScenarioFactors

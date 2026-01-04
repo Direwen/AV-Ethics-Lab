@@ -19,18 +19,10 @@ type GetNextResponse struct {
 }
 
 type EnrichedEntity struct {
-	ID       string             `json:"id"`
-	Type     string             `json:"type"`
-	Emoji    string             `json:"emoji"`
-	Row      int                `json:"row"`
-	Col      int                `json:"col"`
-	Metadata EnrichedEntityMeta `json:"metadata"`
-}
-
-type EnrichedEntityMeta struct {
-	IsStar      bool   `json:"is_star"`
-	IsEgo       bool   `json:"is_ego"`
-	IsViolation bool   `json:"is_violation"`
-	Action      string `json:"action"`
-	Orientation string `json:"orientation"`
+	ID       string            `json:"id"`
+	Type     string            `json:"type"`
+	Emoji    string            `json:"emoji"`
+	Row      int               `json:"row"`
+	Col      int               `json:"col"`
+	Metadata domain.EntityMeta `json:"metadata"`
 }

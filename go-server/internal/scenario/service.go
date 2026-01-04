@@ -105,47 +105,72 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	}
 	currentFactors := experimentPlan[currentStep]
 
-	// Build Scenario LLM Request struct
+	// Select a Trident Spawn point
+	tridentSpawn, err := s.templateService.GetRandomTridentSpawn(contextTemplate.Id)
+	if err != nil {
+		return nil, errors.New("failed to get a trident spawn point")
+	}
+	// Calc and enrich Trident Zones
+	tridentZones := domain.CalculateTridentZones(*tridentSpawn)
+	s.templateService.EnrichTridentZones(contextTemplate.Id, &tridentZones)
+
+	// Build Scenario LLM Request
 	var gridData [][]int
 	if err := json.Unmarshal(contextTemplate.GridData, &gridData); err != nil {
 		return nil, err
 	}
 	laneConfig := s.templateService.GetLaneConfig(contextTemplate.Id)
+
 	llmRes, err := s.llmClient.GenerateScenario(
 		ctx,
 		domain.ScenarioLLMRequest{
-			TemplateName:    contextTemplate.Name,
-			GridDimensions:  fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
-			Factors:         currentFactors,
-			WalkableCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceWalkable),
-			DrivableCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceDrivable),
-			BuildingCells:   s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceBuilding),
-			RestrictedCells: s.templateService.GetCellsBySurface(contextTemplate.Id, domain.SurfaceRestricted),
-			LaneConfig:      laneConfig,
+			TemplateName:   contextTemplate.Name,
+			GridDimensions: fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
+			Factors:        currentFactors,
+			EgoPosition:    tridentSpawn.Coordinate,
+			EgoOrientation: tridentSpawn.Orientation,
+			TridentZones:   tridentZones,
 		},
 	)
 	if err != nil {
 		return nil, errors.New("failed to generate scenario")
 	}
 
-	// Enrich entities with IDs and Emojis
-	enrichedEntities := make([]EnrichedEntity, len(llmRes.Entities))
+	// Add Ego AV entity (fixed position, not from LLM)
+	egoEntity := EnrichedEntity{
+		ID:    "ent_vehicle_av_ego",
+		Type:  "vehicle_av",
+		Emoji: domain.EntityRegistry["vehicle_av"].Emoji,
+		Row:   tridentSpawn.Row,
+		Col:   tridentSpawn.Col,
+		Metadata: domain.EntityMeta{
+			IsStar:      false,
+			IsEgo:       true,
+			IsViolation: false,
+			Action:      "",
+			Orientation: string(tridentSpawn.Orientation),
+		},
+	}
+
+	// Enrich LLM entities with IDs and Emojis
+	enrichedEntities := make([]EnrichedEntity, 0, len(llmRes.Entities)+1)
+	enrichedEntities = append(enrichedEntities, egoEntity)
 	for i, e := range llmRes.Entities {
 		info := domain.EntityRegistry[e.Type]
-		enrichedEntities[i] = EnrichedEntity{
+		enrichedEntities = append(enrichedEntities, EnrichedEntity{
 			ID:    fmt.Sprintf("ent_%s_%d", e.Type, i),
 			Type:  e.Type,
 			Emoji: info.Emoji,
 			Row:   e.Row,
 			Col:   e.Col,
-			Metadata: EnrichedEntityMeta{
+			Metadata: domain.EntityMeta{
 				IsStar:      e.Metadata.IsStar,
 				IsEgo:       e.Metadata.IsEgo,
 				IsViolation: e.Metadata.IsViolation,
 				Action:      e.Metadata.Action,
 				Orientation: e.Metadata.Orientation,
 			},
-		}
+		})
 	}
 
 	// Serialize for DB storage

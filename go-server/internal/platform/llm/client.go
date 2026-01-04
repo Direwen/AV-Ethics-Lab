@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/tmc/langchaingo/llms"
@@ -35,19 +34,19 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	// Prepare Template
 	template := prompts.PromptTemplate{
 		Template:       c.promptTemplate,
-		InputVariables: []string{"TemplateID", "Dimensions", "Factors", "WalkableCells", "DrivableCells", "BuildingCells", "RestrictedCells", "LaneConfig"},
+		InputVariables: []string{"TemplateName", "Dimensions", "Factors", "EgoPosition", "EgoOrientation", "ZoneA", "ZoneB", "ZoneC"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
 	// Inject Data into Prompt Template
 	templateStr, err := template.Format(map[string]any{
-		"TemplateName":    req.TemplateName,
-		"Dimensions":      req.GridDimensions,
-		"Factors":         req.Factors,
-		"WalkableCells":   formatCellsForLLM(req.WalkableCells),
-		"DrivableCells":   formatCellsForLLM(req.DrivableCells),
-		"BuildingCells":   formatCellsForLLM(req.BuildingCells),
-		"RestrictedCells": formatCellsForLLM(req.RestrictedCells),
-		"LaneConfig":      formatLaneConfigForLLM(req.LaneConfig),
+		"TemplateName":   req.TemplateName,
+		"Dimensions":     req.GridDimensions,
+		"Factors":        req.Factors,
+		"EgoPosition":    formatCoordForLLM(req.EgoPosition),
+		"EgoOrientation": req.EgoOrientation,
+		"ZoneA":          formatZoneForLLM(req.TridentZones.ZoneA),
+		"ZoneB":          formatZoneForLLM(req.TridentZones.ZoneB),
+		"ZoneC":          formatZoneForLLM(req.TridentZones.ZoneC),
 	})
 	if err != nil {
 		return nil, err
@@ -123,32 +122,11 @@ func NewClient(modelName string, provider Provider) (Client, error) {
 	}, nil
 }
 
-func formatGridForLLM(grid [][]int) string {
-	var sb strings.Builder
-	sb.WriteString("[\n")
-	for _, row := range grid {
-		// Format each row as "[0, 0, 9, ...],"
-		rowJSON, _ := json.Marshal(row)
-		sb.WriteString("  ")
-		sb.Write(rowJSON)
-		sb.WriteString(",\n")
-	}
-	sb.WriteString("]")
-	return sb.String()
+func formatCoordForLLM(coord domain.Coordinate) string {
+	return fmt.Sprintf("[%d, %d]", coord.Row, coord.Col)
 }
 
-func formatCellsForLLM(cells [][2]int) string {
-	if len(cells) == 0 {
-		return "[]"
-	}
-	result, _ := json.Marshal(cells)
-	return string(result)
-}
-
-func formatLaneConfigForLLM(laneConfig domain.LaneConfigMap) string {
-	if laneConfig == nil {
-		return "{}"
-	}
-	result, _ := json.Marshal(laneConfig)
+func formatZoneForLLM(zone domain.TridentZone) string {
+	result, _ := json.Marshal(zone.Coordinates)
 	return string(result)
 }

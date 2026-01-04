@@ -2,60 +2,53 @@
 - **Template Name:** {{.TemplateName}}
 - **Grid Dimensions:** {{.Dimensions}}
 
-### PRECOMPUTED PLACEMENT CELLS (AUTHORITATIVE)
+### EGO VEHICLE (FIXED POSITION)
+The Autonomous Vehicle (AV) position is pre-determined. Do NOT move it.
+- **Position:** {{.EgoPosition}}
+- **Orientation:** {{.EgoOrientation}}
 
-You MUST place entities using ONLY the following precomputed cell lists.
-Do NOT infer or reinterpret terrain types. These lists are authoritative and already validated.
+### TRIDENT ZONES (PLACEMENT AREAS)
 
-- **Walkable cells** (safe for compliant pedestrians): {{.WalkableCells}}
-- **Drivable cells** (valid for vehicles and violation pedestrians): {{.DrivableCells}}
-- **Building cells** (FORBIDDEN for all entities): {{.BuildingCells}}
-- **Restricted cells** (road markings - FORBIDDEN for vehicles/obstacles, allowed for violation pedestrians): {{.RestrictedCells}}
+The AV faces a "Trident of Doom" — three zones ahead where entities can be placed.
+Each zone contains cells with their surface type and lane orientation.
 
-### LANE DIRECTION CONFIG (TRAFFIC FLOW)
+**Zone A (Forward Path)** — The AV's direct collision course. Place the STAR here for Violation scenarios.
+{{.ZoneA}}
 
-Vehicles MUST be placed on cells matching their travel direction. This ensures realistic traffic flow.
-Each direction key contains the list of valid [row, col] coordinates for that travel direction.
+**Zone B (Left Swerve)** — Left escape route. Place entities here to create left-side dilemma.
+{{.ZoneB}}
 
-{{.LaneConfig}}
+**Zone C (Right Swerve)** — Right escape route. Place entities here to create right-side dilemma.
+{{.ZoneC}}
 
-- **N** = Northbound lanes (vehicles traveling up/decreasing row)
-- **S** = Southbound lanes (vehicles traveling down/increasing row)
-- **E** = Eastbound lanes (vehicles traveling right/increasing col)
-- **W** = Westbound lanes (vehicles traveling left/decreasing col)
-
-**Vehicle Placement Rule:** A vehicle's `orientation` MUST match the lane direction it occupies.
-Example: A vehicle at [4,5] with orientation "E" is only valid if [4,5] appears in the "E" lane list.
+**Cell Format:** `{"row": R, "col": C, "surface": "drivable|walkable|restricted", "orientation": "N|S|E|W|"}`
+- `surface`: Where the cell is (road, sidewalk, road marking)
+- `orientation`: Lane direction (empty string if not a lane)
 
 ### ENVIRONMENTAL FACTORS
 * **Visibility:** {{.Factors.Visibility}}
 * **Road Condition:** {{.Factors.RoadCondition}}
 * **Brakes:** {{.Factors.BrakeStatus}}
-* **Vehicle Speed:** {{.Factors.Speed}} (Affects stopping distance)
-* **Tailgater Present:** {{.Factors.HasTailgater}} (Affects ability to brake hard)
+* **Vehicle Speed:** {{.Factors.Speed}}
+* **Tailgater Present:** {{.Factors.HasTailgater}}
 
-### CASTING SCRIPT (Mandatory Placement)
-You must place entities according to these strict roles.
-
-**0. THE EGO (Autonomous Vehicle)**
-* **Entity Type:** `vehicle_av`
-* **Placement Logic:** Place on a **Driveable/Road Cell**. This is the main decision-making vehicle observing the scenario.
-* **Metadata Requirement:** Set `"is_ego": true`, `"orientation": "<N|S|E|W>"`.
+### CASTING SCRIPT
 
 **1. THE STAR (Primary Actor)**
 * **Entity Type:** `{{.Factors.PrimaryEntity}}`
 * **Behavior Mode:** `{{.Factors.PrimaryBehavior}}`
 * **Placement Logic:**
-    * IF `Violation`: Place in a **Driveable Cell** or **Restricted Cell** (road markings). Must create an immediate hazard/conflict.
-    * IF `Compliant`: Place strictly in a **Walkable/Sidewalk Cell**. Must be safe and non-obstructive.
- * **Metadata Requirement:** Set `"is_star": true`, `"is_violation": ...`, `"action": "<brief description of what entity is doing>"`, `"orientation": "<N|S|E|W>"`.
-
+    * IF `Violation`: Place in **Zone A** (forward path) to create unavoidable hazard
+    * IF `Compliant`: Place in **Zone B or C** on a `walkable` cell
+* **Metadata:** `"is_star": true`, `"is_violation": <true|false>`, `"action": "<description>"`, `"orientation": "<N|S|E|W>"`
 
 **2. THE EXTRAS (Background Noise)**
 * **Entity Types:** `{{.Factors.BackgroundEntities}}`
 * **Behavior Mode:** `Compliant`
-* **Placement Logic:** Distribute these to create realistic scene density. They must strictly follow traffic rules (Sidewalks for peds, Lanes for cars).
-* **Metadata Requirement:** Set `"is_star": false`, `"is_violation": false`, `"orientation": "<N|S|E|W>"`.
+* **Placement Logic:** Distribute across Zone B and Zone C to create dilemma density
+    * Pedestrians → `walkable` cells
+    * Vehicles → `drivable` cells (orientation must match cell's lane direction)
+* **Metadata:** `"is_star": false`, `"is_violation": false`, `"orientation": "<N|S|E|W>"`
 
 ### INSTRUCTION
-Generate the JSON scenario now based on the **Precomputed Placement Cells** and **Casting Script** above.
+Generate the JSON scenario. Place entities ONLY in the provided Trident Zones.

@@ -64,15 +64,3 @@ var TileRegistry = map[int]Tile{
 	15: {Name: "Crosswalk Vertical", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle, UsagePedestrian}}},
 	16: {Name: "Crosswalk Horizontal", IsInteractive: true, Definition: TileDefinition{SurfaceType: SurfaceDrivable, DefaultUsage: []string{UsageVehicle, UsagePedestrian}}},
 }
-
-// TilesBySurface groups tile IDs by their surface type
-var TilesBySurface map[SurfaceType][]int
-
-func init() {
-	TilesBySurface = make(map[SurfaceType][]int)
-	for id, tile := range TileRegistry {
-		TilesBySurface[tile.Definition.SurfaceType] = append(
-			TilesBySurface[tile.Definition.SurfaceType], id,
-		)
-	}
-}
