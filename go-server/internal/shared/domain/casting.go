@@ -7,6 +7,16 @@ func CastPrimaryEntity() string {
 	return StarPool[rand.Intn(len(StarPool))]
 }
 
+// CastRandomVehicle returns a random vehicle type from the pool
+func CastRandomVehicle() string {
+	return VehiclePool[rand.Intn(len(VehiclePool))]
+}
+
+// CastRandomPedestrian returns a random pedestrian type from the pool
+func CastRandomPedestrian() string {
+	return PedestrianPool[rand.Intn(len(PedestrianPool))]
+}
+
 func CastTridentKit(minNoise, maxNoise int) []string {
 	var kit []string
 

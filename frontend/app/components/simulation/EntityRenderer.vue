@@ -1,18 +1,12 @@
 <template>
-    <div 
-        class="relative w-full h-full flex items-center justify-center pointer-events-none"
-    >
+    <div class="relative w-full h-full flex items-center justify-center pointer-events-none">
         <span 
             v-for="(entity, index) in entities"
-            
             :key="entity.id"
             class="absolute transition-all duration-300 select-none text-base sm:text-lg md:text-xl lg:text-3xl"
             :style="getEntityStyles(entity, index, entities.length)"
-            :class="[
-                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer z-50' : '',
-                rankStore.isSelected(entity.id) ? 'selected-glow' : ''
-            ]"
-            :title="`${entity.type} -> ${entity.metadata?.orientation}`"            @click.stop="handleEntityClick(entity)"
+            :class="getEntityClass(entity)"
+            :title="`${entity.type} -> ${entity.metadata?.orientation}`"
         >
             {{ entity.emoji }}
         </span>
@@ -25,35 +19,26 @@
 
 <script setup lang="ts">
 import type { Entity } from '~/types/simulation'
-import { useRankStore } from '~/stores/rank'
 
 const props = defineProps<{
     entities: Entity[]
     parentHover: boolean
-    hasSelected?: boolean
 }>()
 
-const rankStore = useRankStore()
-
-function handleEntityClick(entity: Entity) {
-    if (props.entities.length === 1) return // Let parent handle single entity
-    
-    if (rankStore.isSelected(entity.id)) {
-        rankStore.clearSelection()
-    } else {
-        rankStore.select(entity)
-    }
+function getEntityClass(entity: Entity): string {
+    if (entity.metadata?.is_ego) return 'ego-glow'
+    if (entity.metadata?.is_star) return 'star-glow'
+    return ''
 }
 
 function getOrientationTransform(orientation: string | undefined): string {
     if (!orientation) return ''
     
-    // All emojis assumed to face LEFT (West) by default
     switch (orientation) {
-        case 'N': return 'rotate(90deg)'  // Left -> Up
-        case 'S': return 'rotate(-90deg)' // Left -> Down
-        case 'E': return 'scaleX(-1)'     // Left -> Flip to Right
-        case 'W': return 'rotate(0deg)'   // Left -> Left (Natural)
+        case 'N': return 'rotate(90deg)'
+        case 'S': return 'rotate(-90deg)'
+        case 'E': return 'scaleX(-1)'
+        case 'W': return 'rotate(0deg)'
         default: return ''
     }
 }
@@ -62,10 +47,8 @@ function getEntityStyles(entity: Entity, index: number, total: number) {
     const zIndex = (index + 1) * 10
     const orientationTransform = getOrientationTransform(entity.metadata?.orientation)
     
-    // Base transforms array
     let transformList: string[] = []
 
-    // 1. Handle Stacking / Hover Offsets
     if (total > 1) {
         if (props.parentHover) {
             const spacing = 28
@@ -77,11 +60,9 @@ function getEntityStyles(entity: Entity, index: number, total: number) {
             transformList.push(`translate(${offset}px, ${offset}px)`)
         }
     } else {
-        // Even for single items, explicit scale(1) helps prevent fuzzy rendering text issues in some browsers
         transformList.push('scale(1)')
     }
 
-    // 2. Add Orientation (Last, so it rotates IN PLACE after translation)
     if (orientationTransform) {
         transformList.push(orientationTransform)
     }
@@ -94,22 +75,35 @@ function getEntityStyles(entity: Entity, index: number, total: number) {
 </script>
 
 <style scoped>
-.selected-glow {
-    background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+.ego-glow {
     border-radius: 50%;
-    padding: 0.25rem;
-    animation: pulse-glow 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px hsl(var(--maz-primary) / 0.8));
+    padding: 0.15rem;
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
+    animation: ego-pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
+@keyframes ego-pulse {
     0%, 100% {
-        filter: drop-shadow(0 0 10px hsl(var(--maz-primary) / 0.8));
-        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+        filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
     }
     50% {
-        filter: drop-shadow(0 0 18px hsl(var(--maz-primary) / 1));
-        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.6) 0%, transparent 70%);
+        filter: drop-shadow(0 0 10px rgba(59, 130, 246, 1)) drop-shadow(0 0 18px rgba(34, 197, 94, 0.8));
+    }
+}
+
+.star-glow {
+    border-radius: 50%;
+    padding: 0.15rem;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 14px rgba(249, 115, 22, 0.7));
+    animation: star-pulse 1s ease-in-out infinite;
+}
+
+@keyframes star-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 14px rgba(249, 115, 22, 0.7));
+    }
+    50% {
+        filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 22px rgba(249, 115, 22, 0.9));
     }
 }
 </style>

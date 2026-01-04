@@ -177,6 +177,29 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		})
 	}
 
+	// Inject Tailgater if True
+	if currentFactors.HasTailgater {
+		rearCoord, err := s.templateService.GetRearCoordinate(contextTemplate.Id, tridentSpawn.Row, tridentSpawn.Col, tridentSpawn.Orientation)
+		if err == nil {
+			vehType := domain.CastRandomVehicle()
+			tailgaterEntity := EnrichedEntity{
+				ID:    "ent_" + vehType + "_tailgater",
+				Type:  vehType,
+				Emoji: domain.EntityRegistry[vehType].Emoji,
+				Row:   rearCoord.Row,
+				Col:   rearCoord.Col,
+				Metadata: domain.EntityMeta{
+					IsStar:      false,
+					IsEgo:       false,
+					IsViolation: true,
+					Action:      "Tailgating dangerously close",
+					Orientation: string(rearCoord.Orientation),
+				},
+			}
+			enrichedEntities = append(enrichedEntities, tailgaterEntity)
+		}
+	}
+
 	// Serialize for DB storage
 	entitiesJSON, _ := json.Marshal(enrichedEntities)
 	factorsJSON, _ := json.Marshal(currentFactors)

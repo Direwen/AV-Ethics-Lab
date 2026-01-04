@@ -21,6 +21,7 @@ type Service interface {
 	GetSurfaceAt(templateID uuid.UUID, row, col int) domain.SurfaceType
 	GetLaneDirectionAt(templateID uuid.UUID, row, col int) domain.Direction
 	CalculateTridentZones(templateID uuid.UUID, spawn domain.TridentSpawn) domain.TridentZones
+	GetRearCoordinate(templateID uuid.UUID, row, col int, orientation domain.Direction) (*domain.EnrichedCoordinate, error)
 }
 
 type service struct {
@@ -185,7 +186,6 @@ func (s *service) GetRandomTridentSpawn(templateID uuid.UUID) (*domain.TridentSp
 	return nil, errors.New("no trident spawns found")
 }
 
-// GetSurfaceAt returns the surface type at a coordinate (O(1) lookup)
 func (s *service) GetSurfaceAt(templateID uuid.UUID, row, col int) domain.SurfaceType {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -198,7 +198,6 @@ func (s *service) GetSurfaceAt(templateID uuid.UUID, row, col int) domain.Surfac
 	return domain.SurfaceBuilding // default
 }
 
-// GetLaneDirectionAt returns the lane direction at a coordinate (O(1) lookup)
 func (s *service) GetLaneDirectionAt(templateID uuid.UUID, row, col int) domain.Direction {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -207,6 +206,55 @@ func (s *service) GetLaneDirectionAt(templateID uuid.UUID, row, col int) domain.
 		return directions[[2]int{row, col}] // returns "" if not found
 	}
 	return ""
+}
+
+func (s *service) GetRearCoordinate(templateID uuid.UUID, row, col int, orientation domain.Direction) (*domain.EnrichedCoordinate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	surfaces, ok := s.surfaceAt[templateID]
+	if !ok {
+		return nil, errors.New("template not found")
+	}
+
+	directions := s.laneDirectionAt[templateID]
+	dims := s.gridDimensions[templateID]
+	height, width := dims[0], dims[1]
+
+	// Rear is opposite of orientation
+	var dRow, dCol int
+	switch orientation {
+	case domain.DirectionNorth:
+		dRow, dCol = 1, 0
+	case domain.DirectionSouth:
+		dRow, dCol = -1, 0
+	case domain.DirectionEast:
+		dRow, dCol = 0, -1
+	case domain.DirectionWest:
+		dRow, dCol = 0, 1
+	default:
+		return nil, errors.New("invalid orientation")
+	}
+
+	rearRow := row + dRow
+	rearCol := col + dCol
+
+	if rearRow < 0 || rearRow >= height || rearCol < 0 || rearCol >= width {
+		return nil, errors.New("rear coordinate out of bounds")
+	}
+
+	key := [2]int{rearRow, rearCol}
+	surface := surfaces[key]
+
+	if surface == domain.SurfaceDrivable {
+		return &domain.EnrichedCoordinate{
+			Coordinate:  domain.Coordinate{Row: rearRow, Col: rearCol},
+			Surface:     surface,
+			Orientation: directions[key],
+		}, nil
+	}
+
+	return nil, errors.New("no valid rear coordinate found")
 }
 
 // CalculateTridentZones builds zones with expandable B/C (skips restricted, stops at building)
