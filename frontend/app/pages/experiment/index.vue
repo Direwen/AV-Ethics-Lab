@@ -10,13 +10,12 @@
         </div>
 
         <!-- Narrative -->
-        <div class="mb-6 p-4 rounded-xl border border-[hsl(var(--maz-border))] bg-[hsl(var(--maz-warning))]/10">
-            <p class="text-sm leading-relaxed">{{ scenario.narrative }}</p>
+        <div class="mb-6 p-5 rounded-xl border-2 border-[hsl(var(--maz-warning))]/50 bg-[hsl(var(--maz-warning))]/15">
+            <p class="text-base font-medium leading-relaxed text-[hsl(var(--maz-foreground))]">{{ scenario.narrative }}</p>
         </div>
 
         <!-- Main Content -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            <!-- Left: Scenario Board (2/3) -->
             <section class="flex flex-col lg:col-span-2">
                 <h2 class="text-sm font-medium uppercase tracking-wider text-[hsl(var(--maz-muted))] mb-3">
                     Scenario
@@ -62,23 +61,10 @@
                 <h2 class="text-sm font-medium uppercase tracking-wider text-[hsl(var(--maz-muted))] mb-3">
                     Rank Options
                 </h2>
-                <div class="flex-1 flex flex-col gap-3">
-                    <div 
-                        v-for="(option, index) in rankingOptions" 
-                        :key="option.key"
-                        class="flex items-center gap-4 p-4 rounded-xl border border-[hsl(var(--maz-border))] bg-[hsl(var(--maz-secondary))] cursor-grab hover:border-[hsl(var(--maz-primary))] transition-colors"
-                        @mouseenter="highlightedZone = option.zone"
-                        @mouseleave="highlightedZone = null"
-                    >
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-[hsl(var(--maz-primary))]/20 text-[hsl(var(--maz-primary))] font-bold text-sm">
-                            {{ index + 1 }}
-                        </span>
-                        <div class="flex-1">
-                            <p class="font-medium">{{ option.label }}</p>
-                        </div>
-                        <MazIcon name="bars-3" class="w-5 h-5 text-[hsl(var(--maz-muted))]" />
-                    </div>
-                </div>
+                <ExperimentRankingOptions 
+                    v-model:options="rankingOptions"
+                    @highlight="highlightedZone = $event"
+                />
             </section>
         </div>
     </div>
@@ -181,7 +167,7 @@ const scenario = {
 const egoEntity = computed(() => scenario.entities.find(e => e.metadata.is_ego))
 
 // Transform dilemma_options to ranking array with zone mapping
-const rankingOptions = computed(() => [
+const rankingOptions = ref([
     { key: 'maintain', label: scenario.dilemma_options.maintain, zone: 'zone_a' },
     { key: 'swerve_left', label: scenario.dilemma_options.swerve_left, zone: 'zone_b' },
     { key: 'swerve_right', label: scenario.dilemma_options.swerve_right, zone: 'zone_c' },
