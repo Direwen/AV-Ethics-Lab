@@ -47,6 +47,19 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		return nil, err
 	}
 
+	// Load the Experiment plan
+	var experimentPlan []domain.ScenarioFactors
+	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
+		return nil, errors.New("failed to load the experiment plan")
+	}
+	totalSteps := len(experimentPlan)
+
+	// Get used scenario context template ids for progress tracking
+	usedContextIDs, err := s.repo.GetUsedTemplateIDs(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Check the existence of the pending scenario
 	pendingScenario, err := s.repo.GetPendingScenario(ctx, sessionID)
 	if err == nil && pendingScenario != nil {
@@ -70,6 +83,16 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		if err := json.Unmarshal(tmpl.GridData, &gridData); err != nil {
 			return nil, err
 		}
+		var tridentSpawn domain.TridentSpawn
+		if err := json.Unmarshal(pendingScenario.TridentSpawn, &tridentSpawn); err != nil {
+			return nil, err
+		}
+		// Recalculate trident zones from stored spawn
+		tridentZones := s.templateService.CalculateTridentZones(tmpl.Id, tridentSpawn)
+
+		// Current step is the count of used templates + 1 (for the pending one)
+		currentStep := len(usedContextIDs) + 1
+
 		return &GetNextResponse{
 			Narrative:      pendingScenario.Narrative,
 			DilemmaOptions: dilemmaOptions,
@@ -79,23 +102,17 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 			Height:         tmpl.Height,
 			GridData:       gridData,
 			LaneConfig:     s.templateService.GetLaneConfig(tmpl.Id),
+			TridentZones:   tridentZones,
+			TemplateName:   tmpl.Name,
+			CurrentStep:    currentStep,
+			TotalSteps:     totalSteps,
 		}, nil
 	}
 
 	// Check Progress
-	// Get used scenario context template ids
-	usedContextIDs, err := s.repo.GetUsedTemplateIDs(ctx, sessionID)
-	if err != nil {
-		return nil, err
-	}
 	currentStep := len(usedContextIDs)
 
-	// Load the Experiment plan and keep the session status updated
-	var experimentPlan []domain.ScenarioFactors
-	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
-		return nil, errors.New("failed to load the experiment plan")
-	}
-	if currentStep >= len(experimentPlan) {
+	if currentStep >= totalSteps {
 		// Mark Session Completed
 		if err := s.sessionService.CompleteSession(ctx, *session); err != nil {
 			return nil, err
@@ -204,6 +221,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	entitiesJSON, _ := json.Marshal(enrichedEntities)
 	factorsJSON, _ := json.Marshal(currentFactors)
 	dilemmaOptionsJSON, _ := json.Marshal(llmRes.DilemmaOptions)
+	tridentSpawnJSON, _ := json.Marshal(tridentSpawn)
 	newScenario := &Scenario{
 		SessionID:         sessionID,
 		Entities:          entitiesJSON,
@@ -211,6 +229,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		DilemmaOptions:    dilemmaOptionsJSON,
 		ContextTemplateID: contextTemplate.Id,
 		Narrative:         llmRes.Narrative,
+		TridentSpawn:      tridentSpawnJSON,
 	}
 	// Save to DB with retry
 	if err := util.Retry(ctx, 3, 50*time.Millisecond, func() error {
@@ -227,6 +246,10 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		Narrative:      llmRes.Narrative,
 		DilemmaOptions: llmRes.DilemmaOptions,
 		Factors:        currentFactors,
+		TridentZones:   tridentZones,
+		TemplateName:   contextTemplate.Name,
+		CurrentStep:    currentStep + 1,
+		TotalSteps:     totalSteps,
 	}
 
 	return res, nil

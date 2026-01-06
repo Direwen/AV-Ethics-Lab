@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"os"
+	"strconv"
 	"sync"
 
 	"github.com/direwen/go-server/internal/shared/domain"
@@ -32,11 +34,31 @@ type service struct {
 	surfaceAt       map[uuid.UUID]map[[2]int]domain.SurfaceType // coord → surface
 	laneDirectionAt map[uuid.UUID]map[[2]int]domain.Direction   // coord → lane direction
 	gridDimensions  map[uuid.UUID][2]int                        // templateID → [height, width]
+	tridentDistance int                                         // how far ahead zones start
+	tridentDepth    int                                         // how many traversable tiles to collect
 	mu              sync.RWMutex
 }
 
 func NewService(repo Repository) Service {
-	return &service{repo: repo}
+	distance := 3
+	if val := os.Getenv("TRIDENT_ZONE_DISTANCE"); val != "" {
+		if parsed, err := strconv.Atoi(val); err == nil {
+			distance = parsed
+		}
+	}
+
+	depth := 3
+	if val := os.Getenv("TRIDENT_ZONE_DEPTH"); val != "" {
+		if parsed, err := strconv.Atoi(val); err == nil {
+			depth = parsed
+		}
+	}
+
+	return &service{
+		repo:            repo,
+		tridentDistance: distance,
+		tridentDepth:    depth,
+	}
 }
 
 func (s *service) LoadAllTemplates(ctx context.Context) error {
@@ -269,8 +291,8 @@ func (s *service) CalculateTridentZones(templateID uuid.UUID, spawn domain.Tride
 
 	fRow, fCol, lRow, lCol, rRow, rCol := domain.CalculateTridentZones(spawn)
 
-	const distance = 3 // how far ahead zones start
-	const depth = 3    // how many traversable tiles to collect
+	distance := s.tridentDistance
+	depth := s.tridentDepth
 
 	baseRow := spawn.Row + (fRow * distance)
 	baseCol := spawn.Col + (fCol * distance)

@@ -98,3 +98,117 @@ html {
         transparent 100%
     );
 }
+
+/* Road Condition Effects */
+
+/* Wet road - base: darker, higher contrast like wet asphalt */
+.road-wet-base {
+    filter: brightness(0.85) contrast(1.15);
+}
+
+/* Wet road - pattern: glossy highlight + animated diagonal rain streaks */
+.road-wet-pattern {
+    background: 
+        /* Static glossy highlight */
+        radial-gradient(ellipse 100% 30% at 50% 80%, rgba(180, 210, 240, 0.2) 0%, transparent 60%),
+        /* Animated rain streaks */
+        repeating-linear-gradient(
+            295deg,
+            transparent 0px,
+            transparent 8px,
+            rgba(43, 156, 236, 0.3) 8px,
+            rgba(251, 253, 255, 0.3) 8.5px,
+            transparent 8.5px,
+            transparent 20px
+        );
+    background-size: 100% 100%, 200% 200%;
+    animation: rain-streak 1s linear infinite;
+}
+
+@keyframes rain-streak {
+    0% { background-position: 0% 0%, 100% 0%; }
+    100% { background-position: 0% 0%, 0% 100%; }
+}
+
+/* Icy road - base: pale bluish tint */
+.road-icy-base {
+    filter: brightness(1.1) saturate(0.7) hue-rotate(15deg);
+}
+
+/* Icy road - pattern: frost patches + falling snow dots */
+.road-icy-pattern {
+    background: 
+        /* Static frost patches */
+        radial-gradient(ellipse 80% 60% at 25% 35%, rgba(200, 230, 255, 0.35) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 80% at 75% 65%, rgba(180, 220, 250, 0.3) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 50% at 50% 20%, rgba(220, 240, 255, 0.25) 0%, transparent 40%),
+        /* Animated snow dots */
+        radial-gradient(circle 1px at 20% 30%, rgba(255, 255, 255, 0.8) 0%, transparent 100%),
+        radial-gradient(circle 1.5px at 60% 20%, rgba(255, 255, 255, 0.7) 0%, transparent 100%),
+        radial-gradient(circle 1px at 80% 60%, rgba(255, 255, 255, 0.8) 0%, transparent 100%),
+        radial-gradient(circle 1.5px at 40% 70%, rgba(255, 255, 255, 0.6) 0%, transparent 100%),
+        radial-gradient(circle 1px at 10% 80%, rgba(255, 255, 255, 0.7) 0%, transparent 100%),
+        radial-gradient(circle 1.5px at 90% 40%, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+    background-size: 
+        100% 100%, 100% 100%, 100% 100%,
+        100% 200%, 100% 200%, 100% 200%, 100% 200%, 100% 200%, 100% 200%;
+    animation: snow-fall 4s linear infinite;
+}
+
+@keyframes snow-fall {
+    0% { background-position: 
+        0% 0%, 0% 0%, 0% 0%,
+        0% -100%, 0% -100%, 0% -100%, 0% -100%, 0% -100%, 0% -100%; 
+    }
+    100% { background-position: 
+        0% 0%, 0% 0%, 0% 0%,
+        0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%; 
+    }
+}
+
+/* Visibility Effects - Container Level */
+
+/* Night: dark, desaturated, blue tint */
+.visibility-night {
+    filter: brightness(0.5) saturate(0.7) sepia(0.2) hue-rotate(180deg);
+}
+
+/* Fog: low contrast, washed out */
+.visibility-fog {
+    filter: contrast(0.75) brightness(1.05) saturate(0.5);
+}
+
+/* Fog overlay: white haze */
+.visibility-fog-overlay {
+    background: radial-gradient(
+        ellipse 120% 120% at 50% 50%,
+        rgba(220, 225, 230, 0.4) 0%,
+        rgba(200, 210, 220, 0.5) 50%,
+        rgba(180, 190, 200, 0.6) 100%
+    );
+}
+
+/* Rain: darker, reduced contrast */
+.visibility-rain {
+    filter: brightness(0.7) contrast(0.85) saturate(0.8);
+}
+
+/* Rain overlay: animated falling rain across whole scene */
+.visibility-rain-overlay {
+    background: repeating-linear-gradient(
+        280deg,
+        transparent 0px,
+        transparent 10px,
+        rgba(150, 180, 210, 0.15) 10px,
+        rgba(180, 200, 220, 0.2) 11px,
+        transparent 11px,
+        transparent 25px
+    );
+    background-size: 200% 200%;
+    animation: scene-rain 0.8s linear infinite;
+}
+
+@keyframes scene-rain {
+    0% { background-position: 100% 0%; }
+    100% { background-position: 0% 100%; }
+}

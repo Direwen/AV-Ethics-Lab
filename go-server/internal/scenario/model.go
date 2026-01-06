@@ -19,6 +19,7 @@ type Scenario struct {
 	Factors           datatypes.JSON           `gorm:"type:jsonb" json:"factors"`
 	DilemmaOptions    datatypes.JSON           `gorm:"type:jsonb" json:"dilemma_options"`
 	Narrative         string                   `gorm:"type:text" json:"narrative"`
+	TridentSpawn      datatypes.JSON           `gorm:"type:jsonb" json:"trident_spawn"`
 
 	// Relationships
 	Response response.Response `gorm:"foreignKey:ScenarioID" json:"response"`

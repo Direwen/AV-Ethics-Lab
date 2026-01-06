@@ -1,5 +1,5 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-    const token = useCookie('token')
+export default defineNuxtRouteMiddleware((to) => {
+    const token = useCookie('session_token')
     const protectedRoutes = ['/experiment', '/feedback']
     const guestRoutes = ['/', '/experiment/consent']
 
@@ -8,7 +8,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
         return navigateTo('/')
     }
 
-    // If trying to access guest route WITH token, redrect to experiment (FOR NOW)
+    // If trying to access guest route WITH token, redirect to experiment (FOR NOW)
     if (guestRoutes.includes(to.path) && token.value) {
         return navigateTo('/experiment')
     }

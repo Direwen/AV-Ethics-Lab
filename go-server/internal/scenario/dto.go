@@ -17,6 +17,10 @@ type GetNextResponse struct {
 	Height         int                    `json:"height"`
 	GridData       [][]int                `json:"grid_data"`
 	LaneConfig     domain.LaneConfigMap   `json:"lane_config"`
+	TridentZones   domain.TridentZones    `json:"trident_zones"`
+	TemplateName   string                 `json:"template_name"`
+	CurrentStep    int                    `json:"current_step"`
+	TotalSteps     int                    `json:"total_steps"`
 }
 
 type EnrichedEntity struct {

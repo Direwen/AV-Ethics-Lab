@@ -25,9 +25,6 @@
 
                 <div class="flex items-center gap-4">
                     <ThemeToggle />
-                    <div class="text-sm font-medium text-[hsl(var(--maz-muted))]">
-                        Step 1 of 2
-                    </div>
                 </div>
 
             </div>

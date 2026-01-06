@@ -96,7 +96,8 @@ export default defineNuxtConfig({
   mazUi: mazUiConfig,
   runtimeConfig: {
     public: {
-      apiBase: "http://localhost:8080"
+      apiBase: "http://localhost:8080",
+      tridentZoneDistance: 1
     }
   }
 } as any)

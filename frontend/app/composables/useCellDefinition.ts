@@ -4,9 +4,7 @@ import type { CellDefinition } from '~/types/simulation'
 export function useCellDefinition() {
     const getCellDefinition = (code: number | string): CellDefinition => {
         const def = CELL_DEFINITIONS[String(code)]
-        return def 
-            ? { class: def.class, name: def.name, isInteractive: def.isInteractive } 
-            : { class: 'bg-red-500', name: '', isInteractive: false }
+        return def ?? { class: 'bg-red-500', name: '', isInteractive: false }
     }
 
     return { getCellDefinition }

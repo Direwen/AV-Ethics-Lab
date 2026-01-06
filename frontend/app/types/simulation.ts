@@ -34,4 +34,5 @@ export interface CellDefinition {
     name?: string
     class: string
     isInteractive: boolean
+    surface?: 'drivable' | 'walkable' | 'building'
 }
