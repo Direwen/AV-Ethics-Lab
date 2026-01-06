@@ -9,7 +9,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         baseURL: config.public.apiBase as string,
 
         onRequest({ options }) {
-            const token = useCookie('token')
+            const token = useCookie('session_token')
             if (token.value) {
                 // Ensure headers is a Headers object
                 const headers = new Headers(options.headers)
@@ -20,9 +20,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         
         onResponseError({ response }) {
             if (response.status === 401) {
-                const token = useCookie('token')
+                const token = useCookie('session_token')
                 token.value = null
-                navigateTo('/auth/login')
+                navigateTo('/')
             }
         }
     })

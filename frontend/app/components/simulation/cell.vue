@@ -1,73 +1,131 @@
 <template>
     <div
         ref="cellRef"
-        class="relative w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-12 lg:h-12 flex items-center justify-center transition-all duration-30"
+        class="relative w-4 h-3 sm:w-6 sm:h-3 md:w-8 md:h-4 lg:w-12 lg:h-8 flex items-center justify-center transition-all duration-200"
         :class="[
             definition?.class, 
-            isInteractive ? 'cursor-pointer' : '',
-            isHovered && entities?.length && entities.length > 1 ? 'overflow-visible z-50' : ''
+            isHovered && entities?.length && entities.length > 1 ? 'overflow-visible z-50' : '',
+            highlightClass,
+            roadConditionClass
         ]"
         :title="definition?.name" 
         role="gridcell"
-        @click="handleClick"
         @mouseenter="isHovered = true"  
         @mouseleave="isHovered = false"
     >
+        <!-- Lane direction arrow -->
+        <span 
+            v-if="laneDirection && !entities?.length" 
+            class="absolute text-[8px] sm:text-xs lg:text-sm opacity-30 pointer-events-none"
+            :class="laneArrowClass"
+        >
+            {{ laneArrow }}
+        </span>
+        <!-- Road condition pattern overlay -->
+        <div 
+            v-if="showRoadConditionOverlay" 
+            class="absolute inset-0 pointer-events-none"
+            :class="roadConditionOverlayClass"
+        />
+        <!-- Highlight overlay -->
+        <div 
+            v-if="highlightType" 
+            class="absolute inset-0 pointer-events-none transition-opacity duration-200"
+            :class="highlightOverlayClass"
+        />
         <EntityRenderer 
             v-if="entities?.length" 
             :entities="entities" 
             :parent-hover="isHovered"
-            :has-selected="hasSelectedEntity"
         />
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed } from 'vue'
 import EntityRenderer from '~/components/simulation/EntityRenderer.vue'
 import type { Entity, CellDefinition } from '~/types/simulation'
-import { useRankStore } from '~/stores/rank'
+
+export type RoadCondition = 'Dry' | 'Wet' | 'Icy'
 
 const props = defineProps<{
     cellCode: number | string
     definition: CellDefinition
     entities?: Entity[]
+    highlightType?: 'maintain' | 'swerve_left' | 'swerve_right' | null
+    roadCondition?: RoadCondition
+    laneDirection?: string | null
 }>()
 
-const rankStore = useRankStore()
 const isHovered = ref(false)
 
-const isInteractive = computed(() => props.definition?.isInteractive ?? false)
+// Lane direction arrows
+const laneArrows: Record<string, string> = { W: '←', E: '→', N: '↑', S: '↓' }
+const laneArrowClasses: Record<string, string> = {
+    W: 'text-yellow-400',
+    E: 'text-green-400',
+    N: 'text-green-400',
+    S: 'text-red-400'
+}
 
-const hasSelectedEntity = computed(() => {
-    if (!props.entities?.length) return false
-    return props.entities.some(e => rankStore.isSelected(e.id))
+const laneArrow = computed(() => props.laneDirection ? laneArrows[props.laneDirection] || '' : '')
+const laneArrowClass = computed(() => props.laneDirection ? laneArrowClasses[props.laneDirection] || '' : '')
+
+// Check if this cell is a road surface
+const isRoadSurface = computed(() => {
+    const s = props.definition?.surface
+    return s === 'drivable' || s === 'walkable'
 })
 
-function handleClick() {
-    // Non-interactive cells clear selection
-    if (!isInteractive.value) {
-        rankStore.clearSelection()
-        return
+// Road condition base color shift
+const roadConditionClass = computed(() => {
+    if (!isRoadSurface.value || !props.roadCondition || props.roadCondition === 'Dry') return ''
+    
+    switch (props.roadCondition) {
+        case 'Wet':
+            return 'road-wet-base'
+        case 'Icy':
+            return 'road-icy-base'
+        default:
+            return ''
     }
+})
 
-    // Empty cell - clear selection
-    if (!props.entities?.length) {
-        rankStore.clearSelection()
-        return
+// Road condition pattern overlay
+const showRoadConditionOverlay = computed(() => {
+    console.log(isRoadSurface.value)
+    return isRoadSurface.value && props.roadCondition !== 'Dry'
+})
+
+const roadConditionOverlayClass = computed(() => {
+    if (!props.roadCondition) return ''
+    
+    switch (props.roadCondition) {
+        case 'Wet':
+            return 'road-wet-pattern'
+        case 'Icy':
+            return 'road-icy-pattern'
+        default:
+            return ''
     }
+})
 
-    // Single entity - toggle selection
-    if (props.entities.length === 1) {
-        const entity = props.entities[0]!
-        if (rankStore.isSelected(entity.id)) {
-            rankStore.clearSelection()
-        } else {
-            rankStore.select(entity)
-        }
-        return
+// Highlight classes
+const highlightClass = computed(() => {
+    if (!props.highlightType) return ''
+    return 'ring-2 ring-inset z-10'
+})
+
+const highlightOverlayClass = computed(() => {
+    switch (props.highlightType) {
+        case 'maintain':
+            return 'bg-yellow-400/40 ring-yellow-400'
+        case 'swerve_left':
+            return 'bg-blue-400/40 ring-blue-400'
+        case 'swerve_right':
+            return 'bg-red-400/40 ring-red-400'
+        default:
+            return ''
     }
-
-    // Multiple entities - TODO: show picker menu
-}
+})
 </script>

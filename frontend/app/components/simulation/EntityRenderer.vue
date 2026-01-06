@@ -1,19 +1,12 @@
 <template>
-    <div 
-        class="relative w-full h-full flex items-center justify-center pointer-events-none"
-    >
+    <div class="relative w-full h-full flex items-center justify-center pointer-events-none">
         <span 
             v-for="(entity, index) in entities"
             :key="entity.id"
             class="absolute transition-all duration-300 select-none text-base sm:text-lg md:text-xl lg:text-3xl"
-            :style="getStackStyles(index, entities.length)"
-            :class="[
-                entity.metadata.is_occluded && !parentHover ? 'opacity-50 grayscale' : '',
-                parentHover && entities.length > 1 ? 'pointer-events-auto cursor-pointer hover:scale-110 z-50' : '',
-                rankStore.isSelected(entity.id) ? 'selected-glow scale-110' : ''
-            ]"
-            :title="entity.metadata.name"
-            @click.stop="handleEntityClick(entity)"
+            :style="getEntityStyles(entity, index, entities.length)"
+            :class="getEntityClass(entity)"
+            :title="`${entity.type} -> ${entity.metadata?.orientation}`"
         >
             {{ entity.emoji }}
         </span>
@@ -26,65 +19,91 @@
 
 <script setup lang="ts">
 import type { Entity } from '~/types/simulation'
-import { useRankStore } from '~/stores/rank'
 
 const props = defineProps<{
     entities: Entity[]
     parentHover: boolean
-    hasSelected?: boolean
 }>()
 
-const rankStore = useRankStore()
+function getEntityClass(entity: Entity): string {
+    if (entity.metadata?.is_ego) return 'ego-glow'
+    if (entity.metadata?.is_star) return 'star-glow'
+    return ''
+}
 
-function handleEntityClick(entity: Entity) {
-    if (props.entities.length === 1) return // Let parent handle single entity
+function getOrientationTransform(orientation: string | undefined): string {
+    if (!orientation) return ''
     
-    if (rankStore.isSelected(entity.id)) {
-        rankStore.clearSelection()
-    } else {
-        rankStore.select(entity)
+    switch (orientation) {
+        case 'N': return 'rotate(90deg)'
+        case 'S': return 'rotate(-90deg)'
+        case 'E': return 'scaleX(-1)'
+        case 'W': return 'rotate(0deg)'
+        default: return ''
     }
 }
 
-function getStackStyles(index: number, total: number) {
+function getEntityStyles(entity: Entity, index: number, total: number) {
     const zIndex = (index + 1) * 10
+    const orientationTransform = getOrientationTransform(entity.metadata?.orientation)
     
-    if (total === 1) return { zIndex, transform: 'scale(1)' }
+    let transformList: string[] = []
 
-    if (props.parentHover) {
-        const spacing = 28
-        const offset = (index * spacing) - ((total - 1) * spacing / 2)
-        return {
-            zIndex: 100 + index,
-            transform: `translateX(${offset}px) scale(1.15)`
+    if (total > 1) {
+        if (props.parentHover) {
+            const spacing = 28
+            const offset = (index * spacing) - ((total - 1) * spacing / 2)
+            transformList.push(`translateX(${offset}px)`)
+            transformList.push('scale(1.15)')
+        } else {
+            const offset = (index * 3) - ((total - 1) * 1.5)
+            transformList.push(`translate(${offset}px, ${offset}px)`)
         }
+    } else {
+        transformList.push('scale(1)')
     }
 
-    const offset = (index * 3) - ((total - 1) * 1.5)
-    return {
-        zIndex,
-        transform: `translate(${offset}px, ${offset}px)`
+    if (orientationTransform) {
+        transformList.push(orientationTransform)
+    }
+
+    return { 
+        zIndex: props.parentHover ? 100 + index : zIndex, 
+        transform: transformList.join(' ') 
     }
 }
 </script>
 
 <style scoped>
-.selected-glow {
-    background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+.ego-glow {
     border-radius: 50%;
-    padding: 0.25rem;
-    animation: pulse-glow 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px hsl(var(--maz-primary) / 0.8));
+    padding: 0.15rem;
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
+    animation: ego-pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
+@keyframes ego-pulse {
     0%, 100% {
-        filter: drop-shadow(0 0 10px hsl(var(--maz-primary) / 0.8));
-        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.4) 0%, transparent 70%);
+        filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
     }
     50% {
-        filter: drop-shadow(0 0 18px hsl(var(--maz-primary) / 1));
-        background: radial-gradient(circle, hsl(var(--maz-primary) / 0.6) 0%, transparent 70%);
+        filter: drop-shadow(0 0 10px rgba(59, 130, 246, 1)) drop-shadow(0 0 18px rgba(34, 197, 94, 0.8));
+    }
+}
+
+.star-glow {
+    border-radius: 50%;
+    padding: 0.15rem;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 14px rgba(249, 115, 22, 0.7));
+    animation: star-pulse 1s ease-in-out infinite;
+}
+
+@keyframes star-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 14px rgba(249, 115, 22, 0.7));
+    }
+    50% {
+        filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 22px rgba(249, 115, 22, 0.9));
     }
 }
 </style>
