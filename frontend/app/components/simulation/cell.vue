@@ -13,6 +13,14 @@
         @mouseenter="isHovered = true"  
         @mouseleave="isHovered = false"
     >
+        <!-- Lane direction arrow -->
+        <span 
+            v-if="laneDirection && !entities?.length" 
+            class="absolute text-[8px] sm:text-xs lg:text-sm opacity-30 pointer-events-none"
+            :class="laneArrowClass"
+        >
+            {{ laneArrow }}
+        </span>
         <!-- Road condition pattern overlay -->
         <div 
             v-if="showRoadConditionOverlay" 
@@ -46,9 +54,22 @@ const props = defineProps<{
     entities?: Entity[]
     highlightType?: 'maintain' | 'swerve_left' | 'swerve_right' | null
     roadCondition?: RoadCondition
+    laneDirection?: string | null
 }>()
 
 const isHovered = ref(false)
+
+// Lane direction arrows
+const laneArrows: Record<string, string> = { W: '←', E: '→', N: '↑', S: '↓' }
+const laneArrowClasses: Record<string, string> = {
+    W: 'text-yellow-400',
+    E: 'text-green-400',
+    N: 'text-green-400',
+    S: 'text-red-400'
+}
+
+const laneArrow = computed(() => props.laneDirection ? laneArrows[props.laneDirection] || '' : '')
+const laneArrowClass = computed(() => props.laneDirection ? laneArrowClasses[props.laneDirection] || '' : '')
 
 // Check if this cell is a road surface
 const isRoadSurface = computed(() => {

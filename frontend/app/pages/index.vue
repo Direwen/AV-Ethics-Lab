@@ -39,7 +39,6 @@
                     <MazBtn
                         size="xl"
                         class="rounded-xl shadow-xl shadow-[hsl(var(--maz-primary))]/20 custom-background-gradient hover:scale-105 transition-transform"
-                        right-icon="arrow-right"
                     >
                         Start Experiment
                     </MazBtn>

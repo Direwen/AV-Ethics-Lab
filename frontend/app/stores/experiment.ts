@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import type { Answer } from "~/types/answer.types";
 import type { Demographic } from "~/types/demographic.types";
 import type { CreateSessionRequest } from "~/types/request.types";
-import type { ApiResponse, CreateSessionResponse } from "~/types/response.types";
+import type { ApiResponse, CreateSessionResponse, ScenarioResponse } from "~/types/response.types";
 import type { Scenario } from "~/types/scenario.types";
 
 export const useExperimentStore = defineStore('experiment', () => {
@@ -26,16 +26,19 @@ export const useExperimentStore = defineStore('experiment', () => {
             const response = await $api<ApiResponse<CreateSessionResponse>>('/api/v1/sessions', {
                 method: 'POST',
                 body: {
-                    demographics,
+                    ...demographics,
                     fingerprint: await getFingerprint(),
-                    selfReportedNew
-                } as CreateSessionRequest
+                    self_reported_new: selfReportedNew
+                }
             })
 
-            if (response.success) {
-                token.value = response.data?.token
-                await nextTick()
+            if (!response.success) {
+                throw new Error(response.message)
             }
+
+            token.value = response.data?.token
+            await nextTick()
+
         } catch(e: any) {
             toast.error("Failed to Create Session")
         } finally {
@@ -62,6 +65,24 @@ export const useExperimentStore = defineStore('experiment', () => {
         return result.visitorId
     }
 
+    
+    async function getScenario() {
+        isLoading.value = true
+        try {
+            const response = await $api<ApiResponse<ScenarioResponse>>('/api/v1/scenarios/next', {method: 'GET'})
+
+            if (!response.success) {
+                throw new Error(response.message)
+            }
+            return response.data
+
+        } catch(e: any) {
+            toast.error("Failed to get the scenario")
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         // State
         token,
@@ -75,6 +96,7 @@ export const useExperimentStore = defineStore('experiment', () => {
         // Actions
         createSession,
         init,
-        getFingerprint
+        getFingerprint,
+        getScenario
     }
 })

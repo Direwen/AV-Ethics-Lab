@@ -30,7 +30,7 @@
             </nav>
 
             <button class="md:hidden p-2 text-[hsl(var(--maz-foreground))]">
-                <MazIcon name="bars-3" class="h-6 w-6" />
+                <MazBars3 class="h-6 w-6" />
             </button>
             </div>
         </header>
@@ -72,6 +72,7 @@
 </template>
 
 <script setup lang="ts">
+import { MazBars3 } from '@maz-ui/icons';
 import Logo from '~/components/commons/Logo.vue';
 import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>

@@ -21,7 +21,7 @@
                 <div class="flex-1">
                     <p class="font-medium">{{ element.label }}</p>
                 </div>
-                <MazIcon name="bars-3" class="w-5 h-5 text-[hsl(var(--maz-muted))]" />
+                <MazBars3 class="w-5 h-5 text-[hsl(var(--maz-muted))]" />
             </div>
         </VueDraggableNext>
     </div>
@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { VueDraggableNext } from 'vue-draggable-next'
 import { ref, watch } from 'vue'
+import { MazBars3 } from '@maz-ui/icons'
 
 export interface RankingOption {
     key: string

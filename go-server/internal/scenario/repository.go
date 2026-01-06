@@ -37,9 +37,11 @@ func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (
 func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
 
+	// Only count scenarios that have been answered (have a response)
 	err := r.db.Model(&Scenario{}).
-		Where("session_id = ?", sessionID).
-		Pluck("context_template_id", &ids).Error
+		Joins("INNER JOIN responses ON responses.scenario_id = scenarios.id").
+		Where("scenarios.session_id = ?", sessionID).
+		Pluck("scenarios.context_template_id", &ids).Error
 
 	return ids, err
 }

@@ -106,9 +106,13 @@ html {
     filter: brightness(0.85) contrast(1.15);
 }
 
-/* Wet road - pattern: glossy highlight + animated diagonal rain streaks */
+/* Wet road - pattern: puddles + glossy highlight + animated diagonal rain streaks */
 .road-wet-pattern {
     background: 
+        /* Puddle reflections - irregular shapes */
+        radial-gradient(ellipse 70% 40% at 30% 70%, rgba(100, 160, 220, 0.35) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 60% at 70% 40%, rgba(80, 140, 200, 0.3) 0%, transparent 45%),
+        radial-gradient(ellipse 40% 30% at 50% 85%, rgba(90, 150, 210, 0.25) 0%, transparent 50%),
         /* Static glossy highlight */
         radial-gradient(ellipse 100% 30% at 50% 80%, rgba(180, 210, 240, 0.2) 0%, transparent 60%),
         /* Animated rain streaks */
@@ -121,7 +125,7 @@ html {
             transparent 8.5px,
             transparent 20px
         );
-    background-size: 100% 100%, 200% 200%;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 200% 200%;
     animation: rain-streak 1s linear infinite;
 }
 
