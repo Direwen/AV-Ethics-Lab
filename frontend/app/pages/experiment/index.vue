@@ -113,7 +113,6 @@
 
 <script setup lang="ts">
 import { useCellDefinition } from '~/composables/useCellDefinition'
-import { useScenarioHighlight } from '~/composables/useScenarioHighlight'
 import { useLaneDirection } from '~/composables/useLaneDirection'
 import { useExperimentStore } from '~/stores/experiment'
 import type { ScenarioResponse } from '~/types/response.types'
