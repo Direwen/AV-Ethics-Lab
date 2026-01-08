@@ -1,9 +1,17 @@
 import { defineStore } from "pinia";
 import type { Answer } from "~/types/answer.types";
 import type { Demographic } from "~/types/demographic.types";
-import type { CreateSessionRequest } from "~/types/request.types";
-import type { ApiResponse, CreateSessionResponse, ScenarioResponse } from "~/types/response.types";
+import type {
+    SubmitResponsePayload
+} from "~/types/request.types"
+import type { 
+    ApiResponse, 
+    CreateSessionResponse, 
+    ScenarioResponse,
+    ResponseSubmissionResult
+} from "~/types/response.types";
 import type { Scenario } from "~/types/scenario.types";
+
 
 export const useExperimentStore = defineStore('experiment', () => {
     const { $api, $fingerprint } = useNuxtApp()
@@ -83,6 +91,29 @@ export const useExperimentStore = defineStore('experiment', () => {
         }
     }
 
+    async function submitResponse(scenarioId: string, payload: SubmitResponsePayload) {
+        isLoading.value = true
+        try {
+            const response = await $api<ApiResponse<ResponseSubmissionResult>>(`/api/v1/scenarios/${scenarioId}/responses`, {
+                method: 'POST',
+                body: payload
+            })
+
+            if (!response.success) {
+                throw new Error(response.message)
+            }
+
+            toast.success("Response submitted successfully")
+            return response.data
+
+        } catch(e: any) {
+            toast.error("Failed to submit response")
+            throw e
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         // State
         token,
@@ -97,6 +128,7 @@ export const useExperimentStore = defineStore('experiment', () => {
         createSession,
         init,
         getFingerprint,
-        getScenario
+        getScenario,
+        submitResponse
     }
 })

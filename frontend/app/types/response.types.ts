@@ -67,3 +67,13 @@ export interface ScenarioResponse {
     current_step: number
     total_steps: number
 }
+
+export interface ResponseSubmissionResult {
+    id: string
+    scenario_id: string
+    ranking_order: string[]
+    response_time_ms: number
+    is_timeout: boolean
+    has_interacted: boolean
+    created_at: string
+}
