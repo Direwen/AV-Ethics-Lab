@@ -40,7 +40,8 @@ interface Props {
     loop?: boolean
     autoStart?: boolean
     size?: number
-    strokeWidth?: number
+    strokeWidth?: number,
+    initialTime?: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,7 +49,8 @@ const props = withDefaults(defineProps<Props>(), {
     loop: false,
     autoStart: true,
     size: 72,
-    strokeWidth: 4
+    strokeWidth: 4,
+    initialTime: null
 })
 
 const emit = defineEmits<{
@@ -56,7 +58,7 @@ const emit = defineEmits<{
     tick: [remaining: number]
 }>()
 
-const remaining = ref(props.duration)
+const remaining = ref(props.initialTime !== null ? props.initialTime : props.duration)
 const isRunning = ref(false)
 let intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -64,6 +66,17 @@ const radius = computed(() => (props.size - props.strokeWidth) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 const progress = computed(() => remaining.value / props.duration)
 const strokeDashoffset = computed(() => circumference.value * (1 - progress.value))
+
+// Watch for initialTime changes when new scenario loads
+watch(() => props.initialTime, (newInitialTime) => {
+    if (newInitialTime !== null) {
+        remaining.value = newInitialTime
+        if (isRunning.value) {
+            stop()
+            start()
+        }
+    }
+}, { immediate: true })
 
 const formattedTime = computed(() => {
     const mins = Math.floor(remaining.value / 60)
@@ -117,16 +130,19 @@ function reset() {
 }
 
 onMounted(() => {
-    remaining.value = props.duration // Ensure proper initialization
+    // Initialize with proper value
+    remaining.value = props.initialTime !== null ? props.initialTime : props.duration
     if (props.autoStart) start()
 })
 
-// Watch for duration changes and reset accordingly
+// Reset when duration changes (only if no initialTime provided)
 watch(() => props.duration, (newDuration) => {
-    remaining.value = newDuration
-    if (isRunning.value) {
-        stop()
-        start()
+    if (props.initialTime === null) {
+        remaining.value = newDuration
+        if (isRunning.value) {
+            stop()
+            start()
+        }
     }
 })
 

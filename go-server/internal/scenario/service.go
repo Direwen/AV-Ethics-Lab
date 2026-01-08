@@ -64,11 +64,12 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	// Check the existence of the pending scenario
 	pendingScenario, err := s.repo.GetPendingScenario(ctx, sessionID)
 	if err == nil && pendingScenario != nil {
-		// Always update StartedAt on each access to prevent refresh abuse
-		now := time.Now()
-		pendingScenario.StartedAt = &now
-		if err := s.repo.Update(ctx, pendingScenario); err != nil {
-			return nil, fmt.Errorf("failed to update scenario start time: %w", err)
+		if pendingScenario.StartedAt == nil {
+			now := time.Now()
+			pendingScenario.StartedAt = &now
+			if err := s.repo.Update(ctx, pendingScenario); err != nil {
+				return nil, fmt.Errorf("failed to update scenario start time: %w", err)
+			}
 		}
 
 		tmpl, err := s.templateService.GetByID(pendingScenario.ContextTemplateID)

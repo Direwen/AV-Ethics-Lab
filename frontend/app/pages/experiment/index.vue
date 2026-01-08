@@ -16,9 +16,12 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <ExperimentTimer 
+                        v-if="scenario"
+                        :key="scenario.id"
                         ref="timerRef"
                         :duration="timerDuration" 
-                        :auto-start="false"
+                        :initial-time="computedInitialTime"
+                        :auto-start="true"
                         @complete="handleTimeUp"
                     />
                     <MazBtn 
@@ -162,6 +165,7 @@ const showQuitDialog = ref(false)
 const hasUserInteracted = ref(false)
 const loadingState = ref<'loading' | 'submitting'>('loading')
 const maxTimeoutId = ref<ReturnType<typeof setTimeout> | null>(null)
+const computedInitialTime = ref(12)
 
 // Loading message based on state
 const loadingMessage = computed(() => {
@@ -189,6 +193,24 @@ async function loadScenario() {
     
     const data = await store.getScenario()
     if (data) {
+        // Calculate elapsed time using localStorage (prevents refresh exploit)
+        const storageKey = `scenario_start_${data.id}`
+        let startedAt = localStorage.getItem(storageKey)
+        
+        if (!startedAt) {
+            startedAt = Date.now().toString()
+            localStorage.setItem(storageKey, startedAt)
+        }
+        
+        const elapsedSeconds = Math.floor((Date.now() - parseInt(startedAt)) / 1000)
+        let remaining = timerDuration.value - elapsedSeconds
+        if (remaining < 0) remaining = 0
+        
+        computedInitialTime.value = remaining
+        
+        // Set start time for response calculation
+        startTime.value = parseInt(startedAt)
+        
         scenario.value = data
         // Reset interaction tracking for new scenario
         hasUserInteracted.value = false
@@ -198,20 +220,13 @@ async function loadScenario() {
             { key: 'swerve_right', label: data.dilemma_options.swerve_right, zone: 'zone_c' },
         ]
         
-        // Reset and start timer after scenario loads
-        startTime.value = Date.now()
-        
-        // Set maximum timeout (15 seconds) as backup
+        // Set backup timeout and handle immediate expiry
         maxTimeoutId.value = setTimeout(() => {
             handleTimeUp()
         }, 15000)
         
-        // Wait for component to be ready and reset/start timer
-        await nextTick()
-        
-        if (timerRef.value) {
-            timerRef.value.reset()
-            timerRef.value.start()
+        if (remaining === 0) {
+            handleTimeUp()
         }
     }
 }
@@ -220,13 +235,13 @@ async function handleTimeUp() {
     if (store.isLoading) return // Prevent double submission
     
     const responseTimeMs = Date.now() - startTime.value
-    await submitResponse(true, responseTimeMs) // timeout = true
+    await submitResponse(true, responseTimeMs)
 }
 
 async function submitResponse(isTimeout = false, responseTimeMs?: number) {
     if (store.isLoading || !scenario.value) return
     
-    // Clear the maximum timeout
+    // Clear backup timeout
     if (maxTimeoutId.value) {
         clearTimeout(maxTimeoutId.value)
         maxTimeoutId.value = null
@@ -244,20 +259,26 @@ async function submitResponse(isTimeout = false, responseTimeMs?: number) {
             has_interacted: hasUserInteracted.value
         })
         
-        // Check if experiment is complete before loading next scenario
+        // Clean up localStorage for this scenario
+        localStorage.removeItem(`scenario_start_${scenario.value.id}`)
+        
+        // Check if experiment is complete
         if (scenario.value.current_step >= scenario.value.total_steps) {
-            // Experiment completed - clear session and redirect to thank you page
+            // Keep loading visible during redirect
+            store.isLoading = true
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            // Clear session and redirect to thank you page
             store.token = null
             await router.push('/thank-you')
             return
         }
         
-        // Load next scenario if experiment is not complete
+        // Load next scenario
         await loadScenario()
         
     } catch (error) {
         // Error handling is done in the store
-        // Reset loading state on error so user can try again
         loadingState.value = 'loading'
     }
 }
@@ -270,7 +291,7 @@ function handleQuit() {
 onMounted(loadScenario)
 
 onUnmounted(() => {
-    // Clean up timeout on component unmount
+    // Clean up timeout
     if (maxTimeoutId.value) {
         clearTimeout(maxTimeoutId.value)
         maxTimeoutId.value = null
