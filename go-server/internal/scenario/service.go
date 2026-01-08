@@ -219,10 +219,22 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	}
 
 	// Serialize for DB storage
-	entitiesJSON, _ := json.Marshal(enrichedEntities)
-	factorsJSON, _ := json.Marshal(currentFactors)
-	dilemmaOptionsJSON, _ := json.Marshal(llmRes.DilemmaOptions)
-	tridentSpawnJSON, _ := json.Marshal(tridentSpawn)
+	entitiesJSON, err := json.Marshal(enrichedEntities)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal entities: %w", err)
+	}
+	factorsJSON, err := json.Marshal(currentFactors)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal factors: %w", err)
+	}
+	dilemmaOptionsJSON, err := json.Marshal(llmRes.DilemmaOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal dilemma options: %w", err)
+	}
+	tridentSpawnJSON, err := json.Marshal(tridentSpawn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal trident spawn: %w", err)
+	}
 	newScenario := &Scenario{
 		SessionID:         sessionID,
 		Entities:          entitiesJSON,
