@@ -9,6 +9,7 @@ import (
 	"github.com/direwen/go-server/internal/config"
 	custommw "github.com/direwen/go-server/internal/middleware"
 	"github.com/direwen/go-server/internal/platform/llm"
+	"github.com/direwen/go-server/internal/response"
 	"github.com/direwen/go-server/internal/scenario"
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/template"
@@ -66,6 +67,11 @@ func main() {
 	)
 	scenarioHandler := scenario.NewHandler(scenarioService)
 
+	// Response
+	responseRepo := response.NewRepository(db)
+	responseService := response.NewService(responseRepo, sessionService, scenarioService)
+	responseHandler := response.NewHandler(responseService)
+
 	// Init Echo
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -79,6 +85,7 @@ func main() {
 	protected.Use(custommw.JWTMiddleware())
 	{
 		protected.GET("/scenarios/next", scenarioHandler.GetNext)
+		protected.POST("/scenarios/:scenario_id/responses", responseHandler.Create)
 	}
 
 	if os.Getenv("LOCAL_FRONTEND_PORT") == "" {

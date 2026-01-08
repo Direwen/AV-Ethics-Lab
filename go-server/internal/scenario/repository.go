@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, scenario *Scenario) error
+	GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 	GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 	GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error)
 	GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error)
@@ -25,6 +26,12 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) Create(ctx context.Context, scenario *Scenario) error {
 	return r.db.WithContext(ctx).Create(scenario).Error
+}
+
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
+	var s Scenario
+	err := r.db.WithContext(ctx).First(&s, "id = ?", id).Error
+	return &s, err
 }
 
 func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error) {

@@ -3,11 +3,14 @@ package response
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	GetCountBySessionID(ctx context.Context, sessionID string) (int64, error)
+	Create(ctx context.Context, response *Response) error
+	GetByID(ctx context.Context, id uuid.UUID) (*Response, error)
+	GetByScenarioID(ctx context.Context, scenarioID uuid.UUID) (*Response, error)
 }
 
 type repository struct {
@@ -18,12 +21,18 @@ func NewRepository(db *gorm.DB) Repository {
 	return &repository{db}
 }
 
-func (r *repository) GetCountBySessionID(ctx context.Context, sessionID string) (int64, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&Response{}).
-		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
-		Where("scenarios.session_id = ?", sessionID).
-		Count(&count).Error
+func (r *repository) Create(ctx context.Context, response *Response) error {
+	return r.db.WithContext(ctx).Create(response).Error
+}
 
-	return count, err
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Response, error) {
+	var response Response
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&response).Error
+	return &response, err
+}
+
+func (r *repository) GetByScenarioID(ctx context.Context, scenarioID uuid.UUID) (*Response, error) {
+	var response Response
+	err := r.db.WithContext(ctx).Where("scenario_id = ?", scenarioID).First(&response).Error
+	return &response, err
 }

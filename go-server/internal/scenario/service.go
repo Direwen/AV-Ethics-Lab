@@ -16,6 +16,7 @@ import (
 
 type Service interface {
 	GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*GetNextResponse, error)
+	GetScenarioByID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 }
 
 type service struct {
@@ -253,4 +254,8 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	}
 
 	return res, nil
+}
+
+func (s *service) GetScenarioByID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
+	return s.repo.GetByID(ctx, id)
 }
