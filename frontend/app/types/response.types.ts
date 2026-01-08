@@ -54,6 +54,7 @@ export interface LaneConfig {
 }
 
 export interface ScenarioResponse {
+    id: string
     narrative: string
     dilemma_options: DilemmaOptions
     entities: Entity[]

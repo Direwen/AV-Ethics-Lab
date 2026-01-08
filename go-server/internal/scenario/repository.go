@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, scenario *Scenario) error
+	Update(ctx context.Context, scenario *Scenario) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 	GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error)
 	GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error)
@@ -26,6 +27,10 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) Create(ctx context.Context, scenario *Scenario) error {
 	return r.db.WithContext(ctx).Create(scenario).Error
+}
+
+func (r *repository) Update(ctx context.Context, scenario *Scenario) error {
+	return r.db.WithContext(ctx).Save(scenario).Error
 }
 
 func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error) {

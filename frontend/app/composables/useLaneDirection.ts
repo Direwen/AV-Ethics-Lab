@@ -36,7 +36,7 @@ export function useLaneDirection(laneConfig: ComputedRef<LaneConfig>) {
     function getLaneArrowClass(direction: string | null): string {
         const classes: Record<string, string> = {
         W: 'text-yellow-400/50',
-        E: 'text-blue-400/50',
+        E: 'text-green-400/50',
         N: 'text-green-400/50',
         S: 'text-red-400/50'
         }

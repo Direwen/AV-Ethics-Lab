@@ -1,6 +1,8 @@
 package scenario
 
 import (
+	"time"
+
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/shared/model"
 	"github.com/direwen/go-server/internal/template"
@@ -19,4 +21,5 @@ type Scenario struct {
 	DilemmaOptions    datatypes.JSON           `gorm:"type:jsonb" json:"dilemma_options"`
 	Narrative         string                   `gorm:"type:text" json:"narrative"`
 	TridentSpawn      datatypes.JSON           `gorm:"type:jsonb" json:"trident_spawn"`
+	StartedAt         *time.Time               `gorm:"type:timestamp" json:"started_at"`
 }

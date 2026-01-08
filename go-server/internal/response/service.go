@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/direwen/go-server/internal/shared/services"
 	"github.com/google/uuid"
@@ -46,6 +47,33 @@ func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid
 
 	if scenario.SessionID != sessionID {
 		return nil, errors.New("scenario does not belong to this session")
+	}
+
+	// Validate response time against scenario start time
+	if scenario.StartedAt != nil {
+		actualElapsed := time.Since(*scenario.StartedAt).Milliseconds()
+		reportedTime := input.ResponseTimeMs
+
+		// Maximum allowed time is timer duration + small buffer (15 seconds total)
+		maxAllowedTime := int64(15000)
+
+		// If actual elapsed time exceeds maximum, reject the response
+		if actualElapsed > maxAllowedTime {
+			return nil, errors.New("response time exceeded maximum allowed duration")
+		}
+
+		// Allow some tolerance for network latency (±2 seconds)
+		tolerance := int64(2000)
+
+		if reportedTime < actualElapsed-tolerance || reportedTime > actualElapsed+tolerance {
+			// If time is suspicious, use the server-calculated time instead
+			input.ResponseTimeMs = actualElapsed
+		}
+
+		// Ensure response time doesn't exceed maximum
+		if input.ResponseTimeMs > maxAllowedTime {
+			input.ResponseTimeMs = maxAllowedTime
+		}
 	}
 
 	// Check if response already exists

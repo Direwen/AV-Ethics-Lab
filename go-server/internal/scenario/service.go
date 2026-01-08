@@ -64,6 +64,13 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	// Check the existence of the pending scenario
 	pendingScenario, err := s.repo.GetPendingScenario(ctx, sessionID)
 	if err == nil && pendingScenario != nil {
+		// Always update StartedAt on each access to prevent refresh abuse
+		now := time.Now()
+		pendingScenario.StartedAt = &now
+		if err := s.repo.Update(ctx, pendingScenario); err != nil {
+			return nil, fmt.Errorf("failed to update scenario start time: %w", err)
+		}
+
 		tmpl, err := s.templateService.GetByID(pendingScenario.ContextTemplateID)
 		if err != nil {
 			return nil, err
@@ -95,6 +102,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		currentStep := len(usedContextIDs) + 1
 
 		return &GetNextResponse{
+			ID:             pendingScenario.Id,
 			Narrative:      pendingScenario.Narrative,
 			DilemmaOptions: dilemmaOptions,
 			Entities:       entities,
@@ -235,6 +243,8 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal trident spawn: %w", err)
 	}
+
+	now := time.Now()
 	newScenario := &Scenario{
 		SessionID:         sessionID,
 		Entities:          entitiesJSON,
@@ -243,6 +253,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		ContextTemplateID: contextTemplate.Id,
 		Narrative:         llmRes.Narrative,
 		TridentSpawn:      tridentSpawnJSON,
+		StartedAt:         &now,
 	}
 	// Save to DB with retry
 	if err := util.Retry(ctx, 3, 50*time.Millisecond, func() error {
@@ -251,6 +262,7 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 		return nil, err
 	}
 	res := &GetNextResponse{
+		ID:             newScenario.Id,
 		GridData:       gridData,
 		LaneConfig:     laneConfig,
 		Entities:       enrichedEntities,

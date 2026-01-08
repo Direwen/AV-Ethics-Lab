@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"github.com/direwen/go-server/internal/shared/domain"
+	"github.com/google/uuid"
 )
 
 type GenerateRequest struct {
@@ -9,6 +10,7 @@ type GenerateRequest struct {
 }
 
 type GetNextResponse struct {
+	ID             uuid.UUID              `json:"id"`
 	Narrative      string                 `json:"narrative"`
 	DilemmaOptions domain.DilemmaOptions  `json:"dilemma_options"`
 	Entities       []EnrichedEntity       `json:"entities"`

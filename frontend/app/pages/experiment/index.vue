@@ -1,8 +1,9 @@
 <template>
     <div class="container mx-auto px-4 py-6">
         <!-- Loading State -->
-        <div v-if="store.isLoading" class="flex items-center justify-center min-h-[50vh]">
+        <div v-if="store.isLoading" class="flex flex-col items-center justify-center min-h-[50vh]">
             <MazSpinner size="3em" />
+            <p class="mt-4 text-sm text-[hsl(var(--maz-muted))]">{{ loadingMessage }}</p>
         </div>
 
         <!-- Scenario Content -->
@@ -14,11 +15,17 @@
                     <p class="text-sm text-[hsl(var(--maz-muted))]">{{ scenario.template_name }}</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <ExperimentTimer :duration="30" loop />
+                    <ExperimentTimer 
+                        ref="timerRef"
+                        :duration="timerDuration" 
+                        :auto-start="false"
+                        @complete="handleTimeUp"
+                    />
                     <MazBtn 
                         size="sm"
                         color="destructive" 
                         outlined
+                        :disabled="store.isLoading"
                         @click="showQuitDialog = true"
                     >
                         <MazXCircle class="w-6 h-6" />
@@ -76,7 +83,21 @@
                     <ExperimentRankingOptions 
                         v-model:options="rankingOptions"
                         @highlight="highlightedZone = $event"
+                        @interaction="hasUserInteracted = $event"
                     />
+
+                    <!-- Submit Button -->
+                    <div class="mt-6">
+                        <MazBtn 
+                            color="primary" 
+                            size="lg"
+                            class="w-full"
+                            :disabled="store.isLoading"
+                            @click="submitResponse(false)"
+                        >
+                            Submit Response
+                        </MazBtn>
+                    </div>
 
                     <!-- Status Badges -->
                     <div class="flex justify-center items-center flex-wrap gap-2 mt-6">
@@ -123,15 +144,31 @@ definePageMeta({
     middleware: ['session']
 })
 
+const config = useRuntimeConfig()
 const store = useExperimentStore()
 const router = useRouter()
 const { getCellDefinition } = useCellDefinition()
+
+// Timer configuration
+const timerDuration = computed(() => Number(config.public.timerDuration) || 12)
+const timerRef = ref()
+const startTime = ref<number>(0)
 
 // State
 const scenario = ref<ScenarioResponse | null>(null)
 const rankingOptions = ref<{ key: string; label: string; zone: string }[]>([])
 const highlightedZone = ref<string | null>(null)
 const showQuitDialog = ref(false)
+const hasUserInteracted = ref(false)
+const loadingState = ref<'loading' | 'submitting'>('loading')
+const maxTimeoutId = ref<ReturnType<typeof setTimeout> | null>(null)
+
+// Loading message based on state
+const loadingMessage = computed(() => {
+    return loadingState.value === 'submitting' 
+        ? 'Submitting response...' 
+        : 'Loading scenario...'
+})
 
 // Highlight logic from composable
 const { getHighlightType, getEntitiesAt } = useScenarioHighlight(scenario, highlightedZone)
@@ -142,14 +179,86 @@ const { getLaneDirection } = useLaneDirection(laneConfig)
 
 // Load scenario
 async function loadScenario() {
+    loadingState.value = 'loading'
+    
+    // Clear any existing timeout
+    if (maxTimeoutId.value) {
+        clearTimeout(maxTimeoutId.value)
+        maxTimeoutId.value = null
+    }
+    
     const data = await store.getScenario()
     if (data) {
         scenario.value = data
+        // Reset interaction tracking for new scenario
+        hasUserInteracted.value = false
         rankingOptions.value = [
             { key: 'maintain', label: data.dilemma_options.maintain, zone: 'zone_a' },
             { key: 'swerve_left', label: data.dilemma_options.swerve_left, zone: 'zone_b' },
             { key: 'swerve_right', label: data.dilemma_options.swerve_right, zone: 'zone_c' },
         ]
+        
+        // Reset and start timer after scenario loads
+        startTime.value = Date.now()
+        
+        // Set maximum timeout (15 seconds) as backup
+        maxTimeoutId.value = setTimeout(() => {
+            handleTimeUp()
+        }, 15000)
+        
+        // Wait for component to be ready and reset/start timer
+        await nextTick()
+        
+        if (timerRef.value) {
+            timerRef.value.reset()
+            timerRef.value.start()
+        }
+    }
+}
+
+async function handleTimeUp() {
+    if (store.isLoading) return // Prevent double submission
+    
+    const responseTimeMs = Date.now() - startTime.value
+    await submitResponse(true, responseTimeMs) // timeout = true
+}
+
+async function submitResponse(isTimeout = false, responseTimeMs?: number) {
+    if (store.isLoading || !scenario.value) return
+    
+    // Clear the maximum timeout
+    if (maxTimeoutId.value) {
+        clearTimeout(maxTimeoutId.value)
+        maxTimeoutId.value = null
+    }
+    
+    loadingState.value = 'submitting'
+    
+    try {
+        const finalResponseTime = responseTimeMs || (Date.now() - startTime.value)
+        
+        await store.submitResponse(scenario.value.id, {
+            ranking_order: rankingOptions.value.map(opt => opt.key),
+            response_time_ms: finalResponseTime,
+            is_timeout: isTimeout,
+            has_interacted: hasUserInteracted.value
+        })
+        
+        // Check if experiment is complete before loading next scenario
+        if (scenario.value.current_step >= scenario.value.total_steps) {
+            // Experiment completed - clear session and redirect to thank you page
+            store.token = null
+            await router.push('/thank-you')
+            return
+        }
+        
+        // Load next scenario if experiment is not complete
+        await loadScenario()
+        
+    } catch (error) {
+        // Error handling is done in the store
+        // Reset loading state on error so user can try again
+        loadingState.value = 'loading'
     }
 }
 
@@ -159,6 +268,14 @@ function handleQuit() {
 }
 
 onMounted(loadScenario)
+
+onUnmounted(() => {
+    // Clean up timeout on component unmount
+    if (maxTimeoutId.value) {
+        clearTimeout(maxTimeoutId.value)
+        maxTimeoutId.value = null
+    }
+})
 
 // Badge helpers
 const speedIcons: Record<string, string> = { Low: '🐢', Medium: '🚗', High: '🏎️' }

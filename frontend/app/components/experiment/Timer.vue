@@ -33,6 +33,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+
 interface Props {
     duration?: number
     loop?: boolean
@@ -115,7 +117,17 @@ function reset() {
 }
 
 onMounted(() => {
+    remaining.value = props.duration // Ensure proper initialization
     if (props.autoStart) start()
+})
+
+// Watch for duration changes and reset accordingly
+watch(() => props.duration, (newDuration) => {
+    remaining.value = newDuration
+    if (isRunning.value) {
+        stop()
+        start()
+    }
 })
 
 onUnmounted(() => {
