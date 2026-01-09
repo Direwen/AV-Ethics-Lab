@@ -31,12 +31,17 @@ func main() {
 	config.ConnectDB()
 	db := config.GetDB()
 
-	// Init LLM Client
+	// Init LLM Clients
 	scenarioLLM, err := llm.NewClient(llm.TaskScenario)
 	if err != nil {
 		log.Fatal("Failed to create scenario LLM client: ", err)
 	}
-	llmClient := scenarioLLM.(llm.ScenarioClient)
+	scenarioLLMClient := scenarioLLM.(llm.ScenarioClient)
+	feedbackLLM, err := llm.NewClient(llm.TaskFeedback)
+	if err != nil {
+		log.Fatal("Failed to create feedback LLM client: ", err)
+	}
+	feedbackLLMClient := feedbackLLM.(llm.FeedbackClient)
 
 	// Template
 	templateRepo := template.NewRepository(db)
@@ -55,7 +60,7 @@ func main() {
 
 	// Session
 	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(sessionRepo)
+	sessionService := session.NewService(sessionRepo, feedbackLLMClient)
 	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario
@@ -64,7 +69,7 @@ func main() {
 		scenarioRepo,
 		sessionService,
 		templateService,
-		llmClient,
+		scenarioLLMClient,
 	)
 	scenarioHandler := scenario.NewHandler(scenarioService)
 
@@ -85,6 +90,7 @@ func main() {
 	protected := e.Group("/api/v1")
 	protected.Use(custommw.JWTMiddleware())
 	{
+		protected.GET("/feedback", sessionHandler.GetSessionFeedback)
 		protected.GET("/scenarios/next", scenarioHandler.GetNext)
 		protected.POST("/scenarios/:scenario_id/responses", responseHandler.Create)
 	}

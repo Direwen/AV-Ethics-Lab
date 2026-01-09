@@ -11,6 +11,8 @@ type Repository interface {
 	Create(ctx context.Context, response *Response) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Response, error)
 	GetByScenarioID(ctx context.Context, scenarioID uuid.UUID) (*Response, error)
+	CountBySessionID(ctx context.Context, sessionID uuid.UUID) (int, error)
+	GetBySessionID(ctx context.Context, sessionID uuid.UUID) ([]*Response, error)
 }
 
 type repository struct {
@@ -35,4 +37,24 @@ func (r *repository) GetByScenarioID(ctx context.Context, scenarioID uuid.UUID) 
 	var response Response
 	err := r.db.WithContext(ctx).Where("scenario_id = ?", scenarioID).First(&response).Error
 	return &response, err
+}
+
+func (r *repository) CountBySessionID(ctx context.Context, sessionID uuid.UUID) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&Response{}).
+		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
+		Where("scenarios.session_id = ?", sessionID).
+		Count(&count).Error
+	return int(count), err
+}
+
+func (r *repository) GetBySessionID(ctx context.Context, sessionID uuid.UUID) ([]*Response, error) {
+	var responses []*Response
+	err := r.db.WithContext(ctx).
+		Model(&Response{}).
+		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
+		Where("scenarios.session_id = ?", sessionID).
+		Find(&responses).Error
+	return responses, err
 }

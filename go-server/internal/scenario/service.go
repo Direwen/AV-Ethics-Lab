@@ -10,7 +10,7 @@ import (
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/template"
-	"github.com/direwen/go-server/pkg/util"
+	"github.com/direwen/go-server/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -123,10 +123,6 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	currentStep := len(usedContextIDs)
 
 	if currentStep >= totalSteps {
-		// Mark Session Completed
-		if err := s.sessionService.CompleteSession(ctx, *session); err != nil {
-			return nil, err
-		}
 		return nil, errors.New("experiment completed")
 	}
 

@@ -6,10 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/direwen/go-server/internal/response"
-	"github.com/direwen/go-server/internal/scenario"
-	"github.com/direwen/go-server/internal/session"
-	"github.com/direwen/go-server/internal/template"
+	"github.com/direwen/go-server/internal/shared/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -54,10 +51,10 @@ func ConnectDB() {
 	log.Println("Connected to Database")
 
 	err = DB.AutoMigrate(
-		&template.ContextTemplate{},
-		&scenario.Scenario{},
-		&session.Session{},
-		&response.Response{},
+		&models.ContextTemplate{},
+		&models.Session{},
+		&models.Scenario{},
+		&models.Response{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database")

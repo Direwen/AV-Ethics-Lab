@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	SubmitResponse(ctx context.Context, sessionID, scenarioID uuid.UUID, input SubmitResponseInput) (*Response, error)
+	SubmitResponse(ctx context.Context, sessionID, scenarioID uuid.UUID, input SubmitResponseInput) (*SubmitResponseOutput, error)
 }
 
 type service struct {
@@ -28,7 +28,7 @@ func NewService(repo Repository, sessionService services.SessionValidator, scena
 	}
 }
 
-func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid.UUID, input SubmitResponseInput) (*Response, error) {
+func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid.UUID, input SubmitResponseInput) (*SubmitResponseOutput, error) {
 	// Validate session is still active
 	session, err := s.sessionService.GetSession(ctx, sessionID)
 	if err != nil {
@@ -96,5 +96,27 @@ func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid
 		return nil, err
 	}
 
-	return response, nil
+	// Check if this was the last response - mark session complete
+	responseCount, err := s.repo.CountBySessionID(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	var experimentPlan []any
+	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
+		return nil, err
+	}
+	totalSteps := len(experimentPlan)
+
+	isComplete := responseCount >= totalSteps
+	if isComplete {
+		if err := s.sessionService.CompleteSession(ctx, *session); err != nil {
+			return nil, err
+		}
+	}
+
+	return &SubmitResponseOutput{
+		Response:   response,
+		IsComplete: isComplete,
+	}, nil
 }

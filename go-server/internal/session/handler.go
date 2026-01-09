@@ -5,6 +5,7 @@ import (
 
 	"github.com/direwen/go-server/internal/util"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,4 +36,23 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, "Session created successfully", map[string]string{"token": token})
+}
+
+func (h *Handler) GetSessionFeedback(c echo.Context) error {
+	sessionIDStr, ok := util.GetSessionID(c)
+	if !ok {
+		return util.ErrorResponse(c, http.StatusUnauthorized, "Missing session", nil)
+	}
+	sessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, "Invalid session ID format", err)
+	}
+
+	response, err := h.service.GetSessionFeedback(c.Request().Context(), sessionID)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve session feedback", err)
+	}
+
+	return util.SuccessResponse(c, http.StatusOK, "Session feedback retrieved successfully", response)
+
 }
