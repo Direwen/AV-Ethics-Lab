@@ -39,3 +39,20 @@ type TridentZones struct {
 	ZoneB TridentZone `json:"zone_b"`
 	ZoneC TridentZone `json:"zone_c"`
 }
+
+type Demographic struct {
+	AgeRange          int    `json:"age_range"`
+	Gender            int    `json:"gender"`
+	Country           string `json:"country"`
+	Occupation        string `json:"occupation"`
+	DrivingExperience int    `json:"driving_experience"`
+}
+
+type EnrichedResponse struct {
+	Narrative      string          `json:"narrative"`
+	Factors        ScenarioFactors `json:"factors"`
+	RankedOptions  []string        `json:"ranked_options"`
+	HasInteracted  bool            `json:"has_interacted"`
+	ResponseTimeMs int64           `json:"response_time_ms"`
+	IsTimeout      bool            `json:"is_timeout"`
+}

@@ -28,7 +28,7 @@ func NewClient(task Task) (any, error) {
 	case TaskScenario:
 		return newScenarioClient(model), nil
 	case TaskFeedback:
-		return nil, fmt.Errorf("feedback client not implemented yet")
+		return newFeedbackClient(model), nil
 	default:
 		return nil, fmt.Errorf("unsupported task: %s", task)
 	}
