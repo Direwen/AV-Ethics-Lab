@@ -64,7 +64,7 @@ var (
 )
 
 // Experiment Target Count
-const ExperimentTargetCount = 12
+const ExperimentTargetCount = 2
 
 // Direction constants for lane config
 type Direction string

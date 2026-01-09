@@ -8,7 +8,9 @@ import (
 
 type Response struct {
 	model.BaseModel
-	RankingOrder datatypes.JSON `gorm:"type:jsonb" json:"ranking_order"`
-	ReactionTime int64          `gorm:"not null" json:"reaction_time"`
-	ScenarioID   uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex" json:"scenario_id"`
+	RankingOrder   datatypes.JSON `gorm:"type:jsonb" json:"ranking_order"`
+	ScenarioID     uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex" json:"scenario_id"`
+	IsTimeout      bool           `gorm:"type:bool;default:false;not null;" json:"is_timeout"`
+	HasInteracted  bool           `gorm:"type:bool;default:true;not null;" json:"has_interacted"`
+	ResponseTimeMs int64          `gorm:"not null" json:"response_time_ms"`
 }

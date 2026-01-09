@@ -45,9 +45,11 @@ const props = defineProps<{
 const emit = defineEmits<{
     'update:options': [options: RankingOption[]]
     'highlight': [zone: string | null]
+    'interaction': [hasInteracted: boolean]
 }>()
 
 const dragging = ref(false)
+const hasInteracted = ref(false)
 
 const localOptions = ref([...props.options])
 
@@ -63,6 +65,11 @@ watch(localOptions, (newVal) => {
 
 function onDragStart() {
     dragging.value = true
+    // Mark as interacted on first drag
+    if (!hasInteracted.value) {
+        hasInteracted.value = true
+        emit('interaction', true)
+    }
 }
 
 function onDragEnd() {

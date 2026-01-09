@@ -54,6 +54,7 @@ export interface LaneConfig {
 }
 
 export interface ScenarioResponse {
+    id: string
     narrative: string
     dilemma_options: DilemmaOptions
     entities: Entity[]
@@ -66,4 +67,14 @@ export interface ScenarioResponse {
     template_name: string
     current_step: number
     total_steps: number
+}
+
+export interface ResponseSubmissionResult {
+    id: string
+    scenario_id: string
+    ranking_order: string[]
+    response_time_ms: number
+    is_timeout: boolean
+    has_interacted: boolean
+    created_at: string
 }

@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import type { ScenarioResponse } from '~/types/response.types'
 import type { Entity } from '~/types/simulation'
 

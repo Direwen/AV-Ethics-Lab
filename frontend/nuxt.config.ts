@@ -97,7 +97,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: "http://localhost:8080",
-      tridentZoneDistance: 1
+      tridentZoneDistance: 1,
+      timerDuration: 12
     }
   }
 } as any)
