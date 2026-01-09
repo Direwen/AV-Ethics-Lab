@@ -32,10 +32,11 @@ func main() {
 	db := config.GetDB()
 
 	// Init LLM Client
-	llmClient, err := llm.NewClient(os.Getenv("LLM_MODEL"), llm.ProviderGroq)
+	scenarioLLM, err := llm.NewClient(llm.TaskScenario)
 	if err != nil {
-		log.Fatal("Failed to create LLM client: ", err)
+		log.Fatal("Failed to create scenario LLM client: ", err)
 	}
+	llmClient := scenarioLLM.(llm.ScenarioClient)
 
 	// Template
 	templateRepo := template.NewRepository(db)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/shared/domain"
@@ -18,18 +17,14 @@ func main() {
 		log.Println("Warning: No .env file found, using system env vars")
 	}
 
-	modelName := os.Getenv("LLM_MODEL")
-	if modelName == "" {
-		modelName = "llama-3.3-70b-versatile" // Groq default
-	}
+	fmt.Println("Creating scenario LLM client...")
 
-	fmt.Printf("Creating LLM client with model: %s, provider: %s\n", modelName, llm.ProviderGroq)
-
-	// Create client
-	client, err := llm.NewClient(modelName, llm.ProviderGroq)
+	// Create client using strategy pattern
+	client, err := llm.NewClient(llm.TaskScenario)
 	if err != nil {
 		log.Fatalf("Failed to create LLM client: %v", err)
 	}
+	scenarioClient := client.(llm.ScenarioClient)
 
 	fmt.Println("LLM client created successfully!")
 
@@ -86,7 +81,7 @@ func main() {
 	}
 
 	fmt.Println("Calling GenerateScenario...")
-	resp, err := client.GenerateScenario(ctx, req)
+	resp, err := scenarioClient.GenerateScenario(ctx, req)
 	if err != nil {
 		log.Fatalf("GenerateScenario failed: %v", err)
 	}
