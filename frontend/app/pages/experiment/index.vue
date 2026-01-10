@@ -268,8 +268,7 @@ async function submitResponse(isTimeout = false, responseTimeMs?: number) {
             store.isLoading = true
             await new Promise(resolve => setTimeout(resolve, 1000))
             
-            // Clear session and redirect to thank you page
-            store.token = null
+            // Redirect to thank you page (token cleared after feedback fetch)
             await router.push('/thank-you')
             return
         }

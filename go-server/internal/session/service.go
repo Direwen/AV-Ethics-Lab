@@ -125,7 +125,7 @@ func (s *service) GetSessionFeedback(ctx context.Context, sessionID uuid.UUID) (
 	}
 
 	// Return cached feedback if exists
-	if session.Feedback != nil && len(session.Feedback) > 0 {
+	if session.Feedback != nil {
 		var feedback domain.FeedbackLLMResponse
 		if err := json.Unmarshal(session.Feedback, &feedback); err != nil {
 			return nil, errors.New("failed to parse cached feedback")

@@ -90,7 +90,7 @@ func main() {
 	protected := e.Group("/api/v1")
 	protected.Use(custommw.JWTMiddleware())
 	{
-		protected.GET("/feedback", sessionHandler.GetSessionFeedback)
+		protected.GET("/sessions/feedback", sessionHandler.GetSessionFeedback)
 		protected.GET("/scenarios/next", scenarioHandler.GetNext)
 		protected.POST("/scenarios/:scenario_id/responses", responseHandler.Create)
 	}

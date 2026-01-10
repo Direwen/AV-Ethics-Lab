@@ -44,6 +44,12 @@ func (c *feedbackclient) GenerateFeedback(ctx context.Context, req domain.Feedba
 		return nil, err
 	}
 
+	fmt.Println("========== SYSTEM PROMPT ==========")
+	fmt.Println(feedbackSystemPrompt)
+	fmt.Println("========== USER PROMPT ==========")
+	fmt.Println(promptStr)
+	fmt.Println("===================================")
+
 	// Call LLM
 	res, err := c.model.GenerateContent(
 		ctx,

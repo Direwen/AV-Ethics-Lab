@@ -8,7 +8,8 @@ import type {
     ApiResponse, 
     CreateSessionResponse, 
     ScenarioResponse,
-    ResponseSubmissionResult
+    ResponseSubmissionResult,
+    FeedbackResponse
 } from "~/types/response.types";
 import type { Scenario } from "~/types/scenario.types";
 
@@ -114,6 +115,25 @@ export const useExperimentStore = defineStore('experiment', () => {
         }
     }
 
+    async function getFeedback() {
+        isLoading.value = true
+        try {
+            const response = await $api<ApiResponse<FeedbackResponse>>('/api/v1/sessions/feedback', {method: 'GET'})
+            if (!response.success) {
+                throw new Error(response.message)
+            }
+            return response.data
+        } catch (e: any) {
+            return {
+                archetype: 'The Thoughtful Participant',
+                summary: 'Thank you for completing the experiment. We were unable to generate your personalized feedback at this time, but your responses have been recorded and will contribute to our research.',
+                key_trait: 'Valued Contributor'
+            }
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         // State
         token,
@@ -129,6 +149,7 @@ export const useExperimentStore = defineStore('experiment', () => {
         init,
         getFingerprint,
         getScenario,
-        submitResponse
+        submitResponse,
+        getFeedback
     }
 })
