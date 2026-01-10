@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -26,7 +27,7 @@ func NewRepository(db *gorm.DB) Repository {
 func (r *repository) FingerprintExists(ctx context.Context, fingerprint string) (bool, error) {
 	var exists bool
 
-	err := r.db.WithContext(ctx).Model(&Session{}).
+	err := database.GetDB(ctx, r.db).WithContext(ctx).Model(&Session{}).
 		Select("1").
 		Where("fingerprint = ?", fingerprint).
 		Limit(1).
@@ -36,25 +37,25 @@ func (r *repository) FingerprintExists(ctx context.Context, fingerprint string) 
 }
 
 func (r *repository) Create(ctx context.Context, session *Session) error {
-	return r.db.WithContext(ctx).Create(session).Error
+	return database.GetDB(ctx, r.db).WithContext(ctx).Create(session).Error
 }
 
 func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Session, error) {
 	var session Session
 
-	err := r.db.WithContext(ctx).First(&session, id).Error
+	err := database.GetDB(ctx, r.db).WithContext(ctx).First(&session, id).Error
 
 	return &session, err
 }
 
 func (r *repository) Update(ctx context.Context, session *Session) error {
-	return r.db.WithContext(ctx).Save(session).Error
+	return database.GetDB(ctx, r.db).WithContext(ctx).Save(session).Error
 }
 
 func (r *repository) GetByIDWithResponses(ctx context.Context, id uuid.UUID) (*Session, error) {
 	var session Session
 
-	err := r.db.WithContext(ctx).
+	err := database.GetDB(ctx, r.db).WithContext(ctx).
 		Preload("Scenarios.Response").
 		First(&session, id).Error
 

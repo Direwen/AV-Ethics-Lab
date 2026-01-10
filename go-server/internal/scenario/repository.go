@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -26,23 +27,23 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r *repository) Create(ctx context.Context, scenario *Scenario) error {
-	return r.db.WithContext(ctx).Create(scenario).Error
+	return database.GetDB(ctx, r.db).WithContext(ctx).Create(scenario).Error
 }
 
 func (r *repository) Update(ctx context.Context, scenario *Scenario) error {
-	return r.db.WithContext(ctx).Save(scenario).Error
+	return database.GetDB(ctx, r.db).WithContext(ctx).Save(scenario).Error
 }
 
 func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
 	var s Scenario
-	err := r.db.WithContext(ctx).First(&s, "id = ?", id).Error
+	err := database.GetDB(ctx, r.db).WithContext(ctx).First(&s, "id = ?", id).Error
 	return &s, err
 }
 
 func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
 	var s Scenario
 
-	err := r.db.WithContext(ctx).Preload("ContextTemplate").First(&s, "id = ?", id).Error
+	err := database.GetDB(ctx, r.db).WithContext(ctx).Preload("ContextTemplate").First(&s, "id = ?", id).Error
 	return &s, err
 }
 
@@ -50,7 +51,7 @@ func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID
 	var ids []uuid.UUID
 
 	// Only count scenarios that have been answered (have a response)
-	err := r.db.Model(&Scenario{}).
+	err := database.GetDB(ctx, r.db).Model(&Scenario{}).
 		Joins("INNER JOIN responses ON responses.scenario_id = scenarios.id").
 		Where("scenarios.session_id = ?", sessionID).
 		Pluck("scenarios.context_template_id", &ids).Error
@@ -61,7 +62,7 @@ func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID
 func (r *repository) GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error) {
 	var s Scenario
 
-	err := r.db.WithContext(ctx).
+	err := database.GetDB(ctx, r.db).WithContext(ctx).
 		Model(&Scenario{}).
 		Joins("LEFT JOIN responses ON responses.scenario_id = scenarios.id").
 		Where("scenarios.session_id = ?", sessionID).

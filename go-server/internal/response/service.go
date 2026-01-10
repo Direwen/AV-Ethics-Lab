@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/direwen/go-server/internal/shared/services"
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 )
 
@@ -15,16 +16,23 @@ type Service interface {
 }
 
 type service struct {
-	repo            Repository
-	sessionService  services.SessionValidator
-	scenarioService services.ScenarioReader
+	repo               Repository
+	sessionService     services.SessionValidator
+	scenarioService    services.ScenarioReader
+	transactionManager database.TransactionManager
 }
 
-func NewService(repo Repository, sessionService services.SessionValidator, scenarioService services.ScenarioReader) Service {
+func NewService(
+	repo Repository,
+	sessionService services.SessionValidator,
+	scenarioService services.ScenarioReader,
+	transactionManager database.TransactionManager,
+) Service {
 	return &service{
-		repo:            repo,
-		sessionService:  sessionService,
-		scenarioService: scenarioService,
+		repo:               repo,
+		sessionService:     sessionService,
+		scenarioService:    scenarioService,
+		transactionManager: transactionManager,
 	}
 }
 
@@ -52,37 +60,20 @@ func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid
 	// Validate response time against scenario start time
 	if scenario.StartedAt != nil {
 		actualElapsed := time.Since(*scenario.StartedAt).Milliseconds()
-		reportedTime := input.ResponseTimeMs
-
-		// Maximum allowed time is timer duration + small buffer (15 seconds total)
-		maxAllowedTime := int64(15000)
-
-		// If actual elapsed time exceeds maximum, reject the response
+		maxAllowedTime := TimerDurationMs + NetworkBufferMs
 		if actualElapsed > maxAllowedTime {
-			return nil, errors.New("response time exceeded maximum allowed duration")
-		}
-
-		// Allow some tolerance for network latency (±2 seconds)
-		tolerance := int64(2000)
-
-		if reportedTime < actualElapsed-tolerance || reportedTime > actualElapsed+tolerance {
-			// If time is suspicious, use the server-calculated time instead
-			input.ResponseTimeMs = actualElapsed
-		}
-
-		// Ensure response time doesn't exceed maximum
-		if input.ResponseTimeMs > maxAllowedTime {
-			input.ResponseTimeMs = maxAllowedTime
+			input.IsTimeout = true
+			input.ResponseTimeMs = TimerDurationMs
 		}
 	}
 
-	// Check if response already exists
+	// Check if response already exists (before transaction)
 	existingResponse, err := s.repo.GetByScenarioID(ctx, scenarioID)
 	if err == nil && existingResponse != nil {
 		return nil, errors.New("response already exists")
 	}
 
-	// Save Response
+	// Prepare response
 	rankingOrderJSON, _ := json.Marshal(input.RankingOrder)
 	response := &Response{
 		ScenarioID:     scenarioID,
@@ -92,27 +83,38 @@ func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid
 		RankingOrder:   rankingOrderJSON,
 	}
 
-	if err := s.repo.Create(ctx, response); err != nil {
-		return nil, err
-	}
-
-	// Check if this was the last response - mark session complete
-	responseCount, err := s.repo.CountBySessionID(ctx, sessionID)
-	if err != nil {
-		return nil, err
-	}
-
+	// Calculate completion before transaction
 	var experimentPlan []any
 	if err := json.Unmarshal(session.ExperimentPlan, &experimentPlan); err != nil {
 		return nil, err
 	}
 	totalSteps := len(experimentPlan)
 
-	isComplete := responseCount >= totalSteps
-	if isComplete {
-		if err := s.sessionService.CompleteSession(ctx, *session); err != nil {
-			return nil, err
+	var isComplete bool
+
+	// Transaction: create response + count + update session status
+	err = s.transactionManager.Do(ctx, func(txCtx context.Context) error {
+		if err := s.repo.Create(txCtx, response); err != nil {
+			return err
 		}
+
+		responseCount, err := s.repo.CountBySessionID(txCtx, sessionID)
+		if err != nil {
+			return err
+		}
+
+		isComplete = responseCount >= totalSteps
+		if isComplete {
+			if err := s.sessionService.CompleteSession(txCtx, *session); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	return &SubmitResponseOutput{

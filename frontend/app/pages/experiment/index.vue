@@ -214,11 +214,18 @@ async function loadScenario() {
         scenario.value = data
         // Reset interaction tracking for new scenario
         hasUserInteracted.value = false
-        rankingOptions.value = [
+        
+        // Randomize ranking options to prevent passive agreement bias
+        const options = [
             { key: 'maintain', label: data.dilemma_options.maintain, zone: 'zone_a' },
             { key: 'swerve_left', label: data.dilemma_options.swerve_left, zone: 'zone_b' },
             { key: 'swerve_right', label: data.dilemma_options.swerve_right, zone: 'zone_c' },
         ]
+        for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]]
+        }
+        rankingOptions.value = options
         
         // Set backup timeout and handle immediate expiry
         maxTimeoutId.value = setTimeout(() => {
