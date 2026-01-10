@@ -12,10 +12,9 @@ import (
 type Repository interface {
 	Create(ctx context.Context, scenario *Scenario) error
 	Update(ctx context.Context, scenario *Scenario) error
-	GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error)
-	GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error)
+	GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Scenario, error)
 	GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error)
-	GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error)
+	GetPendingScenario(ctx context.Context, sessionID uuid.UUID, opts ...database.QueryOption) (*Scenario, error)
 }
 
 type repository struct {
@@ -34,16 +33,11 @@ func (r *repository) Update(ctx context.Context, scenario *Scenario) error {
 	return database.GetDB(ctx, r.db).WithContext(ctx).Save(scenario).Error
 }
 
-func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Scenario, error) {
 	var s Scenario
-	err := database.GetDB(ctx, r.db).WithContext(ctx).First(&s, "id = ?", id).Error
-	return &s, err
-}
-
-func (r *repository) GetByContextTemplateID(ctx context.Context, id uuid.UUID) (*Scenario, error) {
-	var s Scenario
-
-	err := database.GetDB(ctx, r.db).WithContext(ctx).Preload("ContextTemplate").First(&s, "id = ?", id).Error
+	db := database.GetDB(ctx, r.db).WithContext(ctx).Model(&Scenario{}).Where("id = ?", id)
+	db = database.ApplyOptions(db, opts...)
+	err := db.First(&s).Error
 	return &s, err
 }
 
@@ -59,16 +53,18 @@ func (r *repository) GetUsedTemplateIDs(ctx context.Context, sessionID uuid.UUID
 	return ids, err
 }
 
-func (r *repository) GetPendingScenario(ctx context.Context, sessionID uuid.UUID) (*Scenario, error) {
+func (r *repository) GetPendingScenario(ctx context.Context, sessionID uuid.UUID, opts ...database.QueryOption) (*Scenario, error) {
 	var s Scenario
 
-	err := database.GetDB(ctx, r.db).WithContext(ctx).
+	db := database.GetDB(ctx, r.db).WithContext(ctx).
 		Model(&Scenario{}).
 		Joins("LEFT JOIN responses ON responses.scenario_id = scenarios.id").
 		Where("scenarios.session_id = ?", sessionID).
 		Where("responses.id IS NULL").
-		Order("scenarios.created_at DESC").
-		First(&s).Error
+		Order("scenarios.created_at DESC")
+	db = database.ApplyOptions(db, opts...)
+
+	err := db.First(&s).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

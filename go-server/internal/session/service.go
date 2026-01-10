@@ -9,6 +9,7 @@ import (
 
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/util"
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )
@@ -114,7 +115,7 @@ func (s *service) CompleteSession(ctx context.Context, session Session) error {
 
 func (s *service) GetSessionFeedback(ctx context.Context, sessionID uuid.UUID) (*domain.FeedbackLLMResponse, error) {
 	// Get session with all scenarios and responses preloaded
-	session, err := s.repo.GetByIDWithResponses(ctx, sessionID)
+	session, err := s.repo.GetByID(ctx, sessionID, database.WithPreload("Scenarios.Response"))
 	if err != nil {
 		return nil, errors.New("session not found")
 	}
