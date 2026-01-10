@@ -9,3 +9,6 @@ type CreateSessionInput struct {
 	Fingerprint       string `json:"fingerprint" validate:"required"`
 	SelfReportedNew   bool   `json:"self_reported_new"`
 }
+
+type SessionFeedback struct {
+}

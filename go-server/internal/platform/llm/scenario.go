@@ -5,40 +5,41 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/ollama"
-	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
 )
 
 //go:embed prompts/system.md
-var systemPromptSrc string
+var scenarioSystemPrompt string
 
 //go:embed prompts/template.md
-var promptTemplateSrc string
+var scenarioPromptTemplate string
 
-type Client interface {
+// ScenarioClient handles scenario generation
+type ScenarioClient interface {
 	GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error)
 }
 
-type client struct {
-	model          llms.Model
-	sysMsg         string
-	promptTemplate string
+type scenarioClient struct {
+	model llms.Model
 }
 
-func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error) {
-	// Prepare Template
+func newScenarioClient(model llms.Model) ScenarioClient {
+	return &scenarioClient{model: model}
+}
+
+func (c *scenarioClient) GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error) {
+	// Prepare template
 	template := prompts.PromptTemplate{
-		Template:       c.promptTemplate,
+		Template:       scenarioPromptTemplate,
 		InputVariables: []string{"TemplateName", "Dimensions", "Factors", "EgoPosition", "EgoOrientation", "ZoneA", "ZoneB", "ZoneC"},
 		TemplateFormat: prompts.TemplateFormatGoTemplate,
 	}
-	// Inject Data into Prompt Template
-	templateStr, err := template.Format(map[string]any{
+
+	// Inject data
+	promptStr, err := template.Format(map[string]any{
 		"TemplateName":   req.TemplateName,
 		"Dimensions":     req.GridDimensions,
 		"Factors":        req.Factors,
@@ -52,19 +53,19 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 		return nil, err
 	}
 
-	// TO DEBUG
+	// Debug output
 	fmt.Println("========== SYSTEM PROMPT ==========")
-	fmt.Println(c.sysMsg)
+	fmt.Println(scenarioSystemPrompt)
 	fmt.Println("========== USER PROMPT ==========")
-	fmt.Println(templateStr)
+	fmt.Println(promptStr)
 	fmt.Println("===================================")
 
 	// Call LLM
 	res, err := c.model.GenerateContent(
 		ctx,
 		[]llms.MessageContent{
-			llms.TextParts(llms.ChatMessageTypeSystem, c.sysMsg),
-			llms.TextParts(llms.ChatMessageTypeHuman, templateStr),
+			llms.TextParts(llms.ChatMessageTypeSystem, scenarioSystemPrompt),
+			llms.TextParts(llms.ChatMessageTypeHuman, promptStr),
 		},
 		llms.WithJSONMode(),
 	)
@@ -72,7 +73,7 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 		return nil, err
 	}
 
-	// Parse Response
+	// Parse response
 	if len(res.Choices) == 0 {
 		return nil, fmt.Errorf("no choices returned")
 	}
@@ -83,43 +84,6 @@ func (c *client) GenerateScenario(ctx context.Context, req domain.ScenarioLLMReq
 	}
 
 	return &response, nil
-}
-
-func NewClient(modelName string, provider Provider) (Client, error) {
-	var llm llms.Model
-	var err error
-
-	switch provider {
-	case ProviderOpenAI:
-		llm, err = openai.New(
-			openai.WithModel(modelName),
-			openai.WithResponseFormat(openai.ResponseFormatJSON),
-		)
-	case ProviderOllama:
-		llm, err = ollama.New(
-			ollama.WithModel(modelName),
-			ollama.WithFormat("json"),
-		)
-	case ProviderGroq:
-		llm, err = openai.New(
-			openai.WithModel(modelName),
-			openai.WithBaseURL("https://api.groq.com/openai/v1"),
-			openai.WithToken(os.Getenv("GROQ_API_KEY")),
-			openai.WithResponseFormat(openai.ResponseFormatJSON),
-		)
-	default:
-		return nil, fmt.Errorf("unsupported provider: %s", provider)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &client{
-		model:          llm,
-		sysMsg:         systemPromptSrc,
-		promptTemplate: promptTemplateSrc,
-	}, nil
 }
 
 func formatCoordForLLM(coord domain.Coordinate) string {

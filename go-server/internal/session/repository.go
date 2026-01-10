@@ -11,6 +11,7 @@ type Repository interface {
 	FingerprintExists(ctx context.Context, fingerprint string) (bool, error)
 	Create(ctx context.Context, session *Session) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Session, error)
+	GetByIDWithResponses(ctx context.Context, id uuid.UUID) (*Session, error)
 	Update(ctx context.Context, session *Session) error
 }
 
@@ -48,4 +49,14 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Session, error
 
 func (r *repository) Update(ctx context.Context, session *Session) error {
 	return r.db.WithContext(ctx).Save(session).Error
+}
+
+func (r *repository) GetByIDWithResponses(ctx context.Context, id uuid.UUID) (*Session, error) {
+	var session Session
+
+	err := r.db.WithContext(ctx).
+		Preload("Scenarios.Response").
+		First(&session, id).Error
+
+	return &session, err
 }

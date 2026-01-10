@@ -6,3 +6,8 @@ type SubmitResponseInput struct {
 	IsTimeout      bool     `json:"is_timeout"`
 	HasInteracted  bool     `json:"has_interacted"`
 }
+
+type SubmitResponseOutput struct {
+	Response   *Response `json:"response"`
+	IsComplete bool      `json:"is_complete"`
+}

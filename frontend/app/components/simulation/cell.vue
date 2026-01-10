@@ -93,7 +93,6 @@ const roadConditionClass = computed(() => {
 
 // Road condition pattern overlay
 const showRoadConditionOverlay = computed(() => {
-    console.log(isRoadSurface.value)
     return isRoadSurface.value && props.roadCondition !== 'Dry'
 })
 

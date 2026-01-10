@@ -7,6 +7,24 @@ type LLMClient interface {
 	GenerateScenario(ctx context.Context, req ScenarioLLMRequest) (*ScenarioLLMResponse, error)
 }
 
+// Feedback LLM
+type FeedbackLLMClient interface {
+	GenerateFeedback(ctx context.Context, req FeedbackLLMRequest) (*FeedbackLLMResponse, error)
+}
+
+// FeedbackLLMRequest is the request payload for feedback generation
+type FeedbackLLMRequest struct {
+	Demographic Demographic        `json:"demographic"`
+	Responses   []EnrichedResponse `json:"responses"`
+}
+
+// FeedbackLLMResponse is the response from the LLM for feedback generation
+type FeedbackLLMResponse struct {
+	Archetype string `json:"archetype"`
+	Summary   string `json:"summary"`
+	KeyTrait  string `json:"key_trait"`
+}
+
 // ScenarioLLMRequest is the request payload for scenario generation
 type ScenarioLLMRequest struct {
 	TemplateName   string          `json:"template_name"`

@@ -78,3 +78,9 @@ export interface ResponseSubmissionResult {
     has_interacted: boolean
     created_at: string
 }
+
+export interface FeedbackResponse {
+    archetype: string,
+    summary: string,
+    key_trait: string
+}

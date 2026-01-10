@@ -1,0 +1,13 @@
+package models
+
+import "gorm.io/datatypes"
+
+type ContextTemplate struct {
+	BaseModel
+	Name       string         `gorm:"not null" json:"name"`
+	Width      int            `gorm:"type:int;not null" json:"width"`
+	Height     int            `gorm:"type:int;not null" json:"height"`
+	GridData   datatypes.JSON `gorm:"type:jsonb;not null" json:"grid_data"`
+	LaneConfig datatypes.JSON `gorm:"type:jsonb" json:"lane_config"`
+	Meta       datatypes.JSON `gorm:"type:jsonb" json:"meta"`
+}
