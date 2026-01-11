@@ -14,6 +14,7 @@ import (
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/lpernett/godotenv"
@@ -30,6 +31,7 @@ func main() {
 
 	config.ConnectDB()
 	db := config.GetDB()
+	txManager := database.NewTransactionManager(db)
 
 	// Init LLM Clients
 	scenarioLLM, err := llm.NewClient(llm.TaskScenario)
@@ -75,7 +77,7 @@ func main() {
 
 	// Response
 	responseRepo := response.NewRepository(db)
-	responseService := response.NewService(responseRepo, sessionService, scenarioService)
+	responseService := response.NewService(responseRepo, sessionService, scenarioService, txManager)
 	responseHandler := response.NewHandler(responseService)
 
 	// Init Echo

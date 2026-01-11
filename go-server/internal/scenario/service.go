@@ -9,6 +9,7 @@ import (
 
 	"github.com/direwen/go-server/internal/session"
 	"github.com/direwen/go-server/internal/shared/domain"
+	"github.com/direwen/go-server/internal/shared/models"
 	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/google/uuid"
@@ -120,11 +121,10 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	}
 
 	// Check Progress
-	currentStep := len(usedContextIDs)
-
-	if currentStep >= totalSteps {
+	if session.Status == models.StatusCompleted {
 		return nil, errors.New("experiment completed")
 	}
+	currentStep := len(usedContextIDs)
 
 	// Pick a context template and factors for the current scenario
 	contextTemplate, err := s.templateService.PickTemplate(usedContextIDs)

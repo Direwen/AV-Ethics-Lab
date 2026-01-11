@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 
+	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -10,8 +11,7 @@ import (
 type Repository interface {
 	FingerprintExists(ctx context.Context, fingerprint string) (bool, error)
 	Create(ctx context.Context, session *Session) error
-	GetByID(ctx context.Context, id uuid.UUID) (*Session, error)
-	GetByIDWithResponses(ctx context.Context, id uuid.UUID) (*Session, error)
+	GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Session, error)
 	Update(ctx context.Context, session *Session) error
 }
 
@@ -26,7 +26,7 @@ func NewRepository(db *gorm.DB) Repository {
 func (r *repository) FingerprintExists(ctx context.Context, fingerprint string) (bool, error) {
 	var exists bool
 
-	err := r.db.WithContext(ctx).Model(&Session{}).
+	err := database.GetDB(ctx, r.db).WithContext(ctx).Model(&Session{}).
 		Select("1").
 		Where("fingerprint = ?", fingerprint).
 		Limit(1).
@@ -36,27 +36,20 @@ func (r *repository) FingerprintExists(ctx context.Context, fingerprint string) 
 }
 
 func (r *repository) Create(ctx context.Context, session *Session) error {
-	return r.db.WithContext(ctx).Create(session).Error
+	return database.GetDB(ctx, r.db).WithContext(ctx).Create(session).Error
 }
 
-func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Session, error) {
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Session, error) {
 	var session Session
 
-	err := r.db.WithContext(ctx).First(&session, id).Error
+	db := database.GetDB(ctx, r.db).WithContext(ctx).Model(&Session{}).Where("id = ?", id)
+	db = database.ApplyOptions(db, opts...)
+
+	err := db.First(&session).Error
 
 	return &session, err
 }
 
 func (r *repository) Update(ctx context.Context, session *Session) error {
-	return r.db.WithContext(ctx).Save(session).Error
-}
-
-func (r *repository) GetByIDWithResponses(ctx context.Context, id uuid.UUID) (*Session, error) {
-	var session Session
-
-	err := r.db.WithContext(ctx).
-		Preload("Scenarios.Response").
-		First(&session, id).Error
-
-	return &session, err
+	return database.GetDB(ctx, r.db).WithContext(ctx).Save(session).Error
 }
