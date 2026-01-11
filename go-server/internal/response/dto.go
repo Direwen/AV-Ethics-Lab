@@ -11,3 +11,19 @@ type SubmitResponseOutput struct {
 	Response   *Response `json:"response"`
 	IsComplete bool      `json:"is_complete"`
 }
+
+type RankResult struct {
+	Outcome string `json:"outcome"`
+	Count   int64  `json:"count"`
+}
+
+type FactorCount struct {
+	FactorValue string `json:"factor_value"`
+	Outcome     string `json:"outcome"`
+	Count       int64  `json:"count"`
+}
+
+type ResponseTimeMSCount struct {
+	Second int64 `json:"second"`
+	Count  int64 `json:"count"`
+}
