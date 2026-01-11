@@ -68,7 +68,7 @@ func (s *service) SubmitResponse(ctx context.Context, sessionID, scenarioID uuid
 	}
 
 	// Check if response already exists (before transaction)
-	existingResponse, err := s.repo.GetByScenarioID(ctx, scenarioID)
+	existingResponse, err := s.repo.GetByScenarioID(ctx, scenarioID, database.WithSelect("id"))
 	if err == nil && existingResponse != nil {
 		return nil, errors.New("response already exists")
 	}
