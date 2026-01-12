@@ -38,7 +38,7 @@ type Repository interface {
 	GetLeastHarmfulOutcome(ctx context.Context) (*OutcomeDistribution, error)
 	GetTailgaterEffect(ctx context.Context) (*TailgaterEffect, error)
 	GetComplianceEffect(ctx context.Context) (*ComplianceEffect, error)
-	GetTimeDistribution(ctx context.Context) (*TimeDistribution, error)
+	GetTimeDistribution(ctx context.Context) ([]TimeDistributionPoint, error)
 	GetArchetypeDistribution(ctx context.Context) ([]ArchetypeCount, error)
 }
 
@@ -209,8 +209,8 @@ func (r *repository) GetComplianceEffect(ctx context.Context) (*ComplianceEffect
 	}, nil
 }
 
-func (r *repository) GetTimeDistribution(ctx context.Context) (*TimeDistribution, error) {
-	var result TimeDistribution
+func (r *repository) GetTimeDistribution(ctx context.Context) ([]TimeDistributionPoint, error) {
+	var result []TimeDistributionPoint
 
 	err := database.GetDB(ctx, r.db).WithContext(ctx).
 		Model(&models.Response{}).
@@ -220,15 +220,13 @@ func (r *repository) GetTimeDistribution(ctx context.Context) (*TimeDistribution
 		Where("responses.has_interacted = ?", true).
 		Where("responses.is_timeout = ?", false).
 		Select(`
-			COUNT(*) FILTER (WHERE responses.response_time_ms < 2000) as under_2_sec,
-			COUNT(*) FILTER (WHERE responses.response_time_ms >= 2000 AND responses.response_time_ms < 4000) as between_2_and_4,
-			COUNT(*) FILTER (WHERE responses.response_time_ms >= 4000 AND responses.response_time_ms < 6000) as between_4_and_6,
-			COUNT(*) FILTER (WHERE responses.response_time_ms >= 6000) as over_6_sec,
-			COUNT(*) as total
+			FLOOR(responses.response_time_ms / 1000) as seconds,
+			COUNT(*) as count
 		`).
+		Group("seconds").
 		Scan(&result).Error
 
-	return &result, err
+	return result, err
 }
 
 func (r *repository) GetArchetypeDistribution(ctx context.Context) ([]ArchetypeCount, error) {

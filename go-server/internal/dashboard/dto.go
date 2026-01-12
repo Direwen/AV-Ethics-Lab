@@ -1,13 +1,13 @@
 package dashboard
 
 type PublicStats struct {
-	CompletedSessions        int64                `json:"completed_sessions"`
-	CountriesRepresented     int64                `json:"countries_represented"`
-	LeastHarmfulOutcome      *OutcomeDistribution `json:"least_harmful_outcome"`
-	SelfPreservationEffect   *TailgaterEffect     `json:"self_preservation_effect"`
-	EntityComplianceEffect   *ComplianceEffect    `json:"entity_compliance_effect"`
-	DecisionTimeDistribution *TimeDistribution    `json:"decision_time_distribution"`
-	ArchetypeDistribution    []ArchetypeCount     `json:"archetype_distribution"`
+	CompletedSessions        int64                   `json:"completed_sessions"`
+	CountriesRepresented     int64                   `json:"countries_represented"`
+	LeastHarmfulOutcome      *OutcomeDistribution    `json:"least_harmful_outcome"`
+	SelfPreservationEffect   *TailgaterEffect        `json:"self_preservation_effect"`
+	EntityComplianceEffect   *ComplianceEffect       `json:"entity_compliance_effect"`
+	DecisionTimeDistribution []TimeDistributionPoint `json:"decision_time_distribution"`
+	ArchetypeDistribution    []ArchetypeCount        `json:"archetype_distribution"`
 }
 
 type OutcomeDistribution struct {
@@ -36,12 +36,9 @@ type ComplianceEffect struct {
 	Violation *EffectMetric `json:"violation"`
 }
 
-type TimeDistribution struct {
-	Under2Sec    int64 `json:"under_2s" gorm:"column:under_2_sec"`
-	Between2And4 int64 `json:"between_2s_4s" gorm:"column:between_2_and_4"`
-	Between4And6 int64 `json:"between_4s_6s" gorm:"column:between_4_and_6"`
-	Over6Sec     int64 `json:"over_6s" gorm:"column:over_6_sec"`
-	Total        int64 `json:"total" gorm:"column:total"`
+type TimeDistributionPoint struct {
+	Seconds int64 `json:"seconds" gorm:"column:seconds"`
+	Count   int64 `json:"count" gorm:"column:count"`
 }
 
 type ArchetypeCount struct {
