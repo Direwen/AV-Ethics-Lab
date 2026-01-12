@@ -12,8 +12,8 @@
                 v-for="(element, index) in localOptions"
                 :key="element.key"
                 class="flex items-center gap-4 p-4 rounded-xl border border-[hsl(var(--maz-border))] bg-[hsl(var(--maz-secondary))] transition-colors cursor-grab active:cursor-grabbing hover:border-[hsl(var(--maz-primary))]"
-                @mouseenter="$emit('highlight', element.zone)"
-                @mouseleave="$emit('highlight', null)"
+                @mouseenter="onHover(element.zone)"
+                @mouseleave="onHover(null)"
             >
                 <span class="flex items-center justify-center w-8 h-8 rounded-full bg-[hsl(var(--maz-primary))]/20 text-[hsl(var(--maz-primary))] font-bold text-sm">
                     {{ index + 1 }}
@@ -50,6 +50,7 @@ const emit = defineEmits<{
 
 const dragging = ref(false)
 const hasInteracted = ref(false)
+const interactionCount = ref(0)
 
 const localOptions = ref([...props.options])
 
@@ -63,16 +64,28 @@ watch(localOptions, (newVal) => {
     emit('update:options', newVal)
 }, { deep: true })
 
-function onDragStart() {
-    dragging.value = true
-    // Mark as interacted on first drag
-    if (!hasInteracted.value) {
+function trackInteraction() {
+    if (hasInteracted.value) return
+    interactionCount.value++
+    if (interactionCount.value >= 2) {
         hasInteracted.value = true
         emit('interaction', true)
     }
 }
 
+function onDragStart() {
+    dragging.value = true
+    trackInteraction()
+}
+
 function onDragEnd() {
     dragging.value = false
+}
+
+function onHover(zone: string | null) {
+    emit('highlight', zone)
+    if (zone !== null) {
+        trackInteraction()
+    }
 }
 </script>
