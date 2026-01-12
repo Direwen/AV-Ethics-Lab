@@ -2,7 +2,6 @@ package session
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
@@ -15,8 +14,6 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Session, error)
 	Update(ctx context.Context, session *Session) error
 	CountSessions(ctx context.Context, opts ...database.QueryOption) (int64, error)
-	CountCountries(ctx context.Context) (int64, error)
-	CountArchetypes(ctx context.Context) ([]ArchetypeCount, error)
 }
 
 type repository struct {
@@ -65,29 +62,4 @@ func (r *repository) CountSessions(ctx context.Context, opts ...database.QueryOp
 	err := db.Count(&count).Error
 
 	return count, err
-}
-
-func (r *repository) CountCountries(ctx context.Context) (int64, error) {
-	var count int64
-	err := database.GetDB(ctx, r.db).WithContext(ctx).
-		Model(&Session{}).
-		Distinct("country").
-		Count(&count).Error
-
-	return count, err
-}
-
-func (r *repository) CountArchetypes(ctx context.Context) ([]ArchetypeCount, error) {
-	var counts []ArchetypeCount
-
-	selector := "feedback->>'archetype'"
-
-	err := database.GetDB(ctx, r.db).WithContext(ctx).
-		Model(&Session{}).
-		Select(fmt.Sprintf("%s as archetype, COUNT(*) as count", selector)).
-		Group(selector).
-		Order("count DESC").
-		Scan(&counts).Error
-
-	return counts, err
 }

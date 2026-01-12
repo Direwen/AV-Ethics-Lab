@@ -12,8 +12,3 @@ type CreateSessionInput struct {
 
 type SessionFeedback struct {
 }
-
-type ArchetypeCount struct {
-	Archetype string `json:"archetype"`
-	Count     int64  `json:"count"`
-}

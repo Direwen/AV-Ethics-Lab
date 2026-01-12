@@ -81,11 +81,8 @@ func main() {
 	responseService := response.NewService(responseRepo, sessionService, scenarioService, txManager)
 	responseHandler := response.NewHandler(responseService)
 
-	dashboardService := dashboard.NewService(
-		sessionRepo,
-		scenarioRepo,
-		responseRepo,
-	)
+	dashboardRepo := dashboard.NewRepository(db)
+	dashboardService := dashboard.NewService(dashboardRepo)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 
 	// Init Echo
