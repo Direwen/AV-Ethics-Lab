@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/direwen/go-server/internal/shared/models"
 	"github.com/direwen/go-server/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -77,6 +78,10 @@ func (r *repository) CountRankingAtIndex(ctx context.Context, index int) (map[st
 	err := database.GetDB(ctx, r.db).
 		WithContext(ctx).
 		Model(&Response{}).
+		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
+		Joins("JOIN sessions ON sessions.id = scenarios.session_id").
+		Where("sessions.status = ?", models.StatusCompleted).
+		Where("responses.has_interacted = ?", true).
 		Select(jsonSelector+" as outcome", "COUNT(*) as count").
 		Group(jsonSelector).
 		Scan(&results).Error
@@ -100,11 +105,12 @@ func (r *repository) GetCountsByFactor(ctx context.Context, factorKey string, ra
 
 	err := database.GetDB(ctx, r.db).
 		WithContext(ctx).
-		Table("responses").
+		Model(&Response{}).
 		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
 		Joins("JOIN sessions ON sessions.id = scenarios.session_id").
-		Where("sessions.status = ?", "completed").
-		Select(fmt.Sprintf("%s as factor_value, %s as outcome, COUNT(*) as total", factorSelector, rankSelector)).
+		Where("sessions.status = ?", models.StatusCompleted).
+		Where("responses.has_interacted = ?", true).
+		Select(fmt.Sprintf("%s as factor_value, %s as outcome, COUNT(*) as count", factorSelector, rankSelector)).
 		Group("factor_value, outcome").
 		Scan(&results).Error
 
@@ -118,8 +124,11 @@ func (r *repository) GetResponseTimeDistribution(ctx context.Context) ([]Respons
 	err := database.GetDB(ctx, r.db).
 		WithContext(ctx).
 		Model(&Response{}).
-		Where("is_timeout = ?", false).
-		Select("FLOOR(response_time_ms/1000) as second, COUNT(*) as count").
+		Joins("JOIN scenarios ON scenarios.id = responses.scenario_id").
+		Joins("JOIN sessions ON sessions.id = scenarios.session_id").
+		Where("sessions.status = ?", models.StatusCompleted).
+		Where("responses.has_interacted = ? AND responses.is_timeout = ?", true, false).
+		Select("FLOOR(responses.response_time_ms/1000) as second, COUNT(*) as count").
 		Group("second").
 		Order("second ASC").
 		Scan(&results).Error

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/direwen/go-server/internal/config"
+	"github.com/direwen/go-server/internal/dashboard"
 	custommw "github.com/direwen/go-server/internal/middleware"
 	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/response"
@@ -80,6 +81,13 @@ func main() {
 	responseService := response.NewService(responseRepo, sessionService, scenarioService, txManager)
 	responseHandler := response.NewHandler(responseService)
 
+	dashboardService := dashboard.NewService(
+		sessionRepo,
+		scenarioRepo,
+		responseRepo,
+	)
+	dashboardHandler := dashboard.NewHandler(dashboardService)
+
 	// Init Echo
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -88,6 +96,7 @@ func main() {
 	e.HTTPErrorHandler = util.CustomEchoErrorHandler
 
 	e.POST("api/v1/sessions", sessionHandler.Create)
+	e.GET("api/v1/dashboard", dashboardHandler.GetDashboard)
 
 	protected := e.Group("/api/v1")
 	protected.Use(custommw.JWTMiddleware())
