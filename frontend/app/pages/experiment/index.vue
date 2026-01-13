@@ -78,7 +78,7 @@
                 <!-- Right: Ranking Options + Status Badges -->
                 <section class="flex flex-col">
                     <h2 class="text-sm font-medium uppercase tracking-wider text-[hsl(var(--maz-muted))] mb-3">
-                        Rank Options
+                        Which would you do? Rank by likelihood
                     </h2>
                     <ExperimentRankingOptions 
                         v-model:options="rankingOptions"
