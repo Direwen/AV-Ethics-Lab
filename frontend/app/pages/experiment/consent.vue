@@ -253,7 +253,14 @@ async function handleStart() {
     )
 
     if (store.token) {
-        router.push('/experiment')
+        // First time users go to guide, returning users go directly to experiment
+        if (!form.has_participated) {
+            store.setGuideAccess(true)
+            router.push('/guide')
+        } else {
+            store.setGuideAccess(false)
+            router.push('/experiment')
+        }
     }
 }
 </script>

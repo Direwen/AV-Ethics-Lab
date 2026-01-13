@@ -13,14 +13,68 @@
             @interaction="hasUserInteracted = $event"
             @submit="handleSubmit"
         />
+
+        <!-- Tutorial Dialog -->
+        <MazDialog v-model="showTutorial" title="How to Participate">
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold mb-2">Welcome to the Experiment!</h3>
+                    <p class="text-sm text-[hsl(var(--maz-muted-foreground))]">
+                        This is a practice scenario to help you understand how the experiment works.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">1. Review the Scenario</h4>
+                    <p class="text-sm text-[hsl(var(--maz-muted-foreground))]">
+                        Look at the driving conditions (speed, road, visibility, brakes) and read the situation description.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">2. Study the Visual</h4>
+                    <p class="text-sm text-[hsl(var(--maz-muted-foreground))]">
+                        The grid shows the road layout with vehicles, pedestrians, and other elements.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">3. Rank Your Choices</h4>
+                    <p class="text-sm text-[hsl(var(--maz-muted-foreground))]">
+                        Drag and drop the action options to rank them from most likely (top) to least likely (bottom) that you would choose.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">4. Hover to Preview</h4>
+                    <p class="text-sm text-[hsl(var(--maz-muted-foreground))]">
+                        Hover over ranking options to see highlighted zones on the grid showing where each action would take you.
+                    </p>
+                </div>
+                
+                <div class="p-3 rounded-lg bg-[hsl(var(--maz-info))]/10 border border-[hsl(var(--maz-info))]/20">
+                    <p class="text-sm font-medium text-[hsl(var(--maz-info))]">
+                        💡 Take your time to explore this practice scenario. In the real experiment, you'll have a time limit!
+                    </p>
+                </div>
+            </div>
+            
+            <template #footer="{ close }">
+                <div class="flex gap-3 justify-end">
+                    <MazBtn color="primary" @click="close">Got it, let's practice!</MazBtn>
+                </div>
+            </template>
+        </MazDialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import type { ScenarioResponse } from '~/types/response.types'
+import { useExperimentStore } from '~/stores/experiment'
 
 definePageMeta({
-    layout: 'optional-layout'
+    layout: 'optional-layout',
+    middleware: ['guide']
 })
 
 // Static scenario data
@@ -179,6 +233,7 @@ const staticScenario: ScenarioResponse = {
 }
 
 // State
+const showTutorial = ref(true) // Auto-open tutorial dialog
 const highlightedZone = ref<string | null>(null)
 const hasUserInteracted = ref(false)
 
@@ -205,7 +260,11 @@ function handleSubmit() {
         has_interacted: hasUserInteracted.value
     })
     
-    // For testing, just show an alert
-    alert(`Calibration complete!\nRanking: ${rankingOptions.value.map(opt => opt.key).join(' > ')}\nInteracted: ${hasUserInteracted.value}`)
+    // Mark guide as completed and redirect to experiment
+    const store = useExperimentStore()
+    store.completeGuide()
+    
+    // Navigate to the actual experiment
+    navigateTo('/experiment')
 }
 </script>
