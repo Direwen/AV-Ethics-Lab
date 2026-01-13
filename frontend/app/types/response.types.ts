@@ -84,3 +84,50 @@ export interface FeedbackResponse {
     summary: string,
     key_trait: string
 }
+
+// Dashboard Types
+export interface DashboardStats {
+    completed_sessions: number
+    countries_represented: number
+    least_harmful_outcome: OutcomeDistribution
+    self_preservation_effect: TailgaterEffect
+    entity_compliance_effect: ComplianceEffect
+    decision_time_distribution: TimeDistributionPoint[]
+    archetype_distribution: ArchetypeCount[]
+}
+
+export interface OutcomeDistribution {
+    maintain: number
+    swerve_left: number
+    swerve_right: number
+    total: number
+    maintain_pct: number
+    swerve_left_pct: number
+    swerve_right_pct: number
+}
+
+export interface TailgaterEffect {
+    with_tailgater: EffectMetric
+    without_tailgater: EffectMetric
+}
+
+export interface EffectMetric {
+    maintain_count: number
+    total_count: number
+    percentage: number
+}
+
+export interface ComplianceEffect {
+    compliant: EffectMetric
+    violation: EffectMetric
+}
+
+export interface TimeDistributionPoint {
+    seconds: number
+    count: number
+}
+
+export interface ArchetypeCount {
+    archetype: string
+    count: number
+}

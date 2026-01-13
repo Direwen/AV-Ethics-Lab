@@ -62,7 +62,7 @@ type Session struct {
 	Status    SessionStatus `gorm:"type:smallint;default:1;not null" json:"status"`
 	ExpiresAt time.Time     `gorm:"type:timestamp;not null" json:"expires_at"`
 	// Experiment Plan & Feedback
-	ExperimentPlan datatypes.JSON `gorm:"type:jsonb" json:"-"`
+	ExperimentPlan datatypes.JSON `gorm:"type:jsonb" json:"experiment_plan"`
 	Feedback       datatypes.JSON `gorm:"type:jsonb" json:"feedback,omitempty"`
 	// Relationships
 	Scenarios []Scenario `gorm:"foreignKey:SessionID" json:"scenarios,omitempty"`

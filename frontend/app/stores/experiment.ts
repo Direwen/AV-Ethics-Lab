@@ -9,7 +9,8 @@ import type {
     CreateSessionResponse, 
     ScenarioResponse,
     ResponseSubmissionResult,
-    FeedbackResponse
+    FeedbackResponse,
+    DashboardStats
 } from "~/types/response.types";
 import type { Scenario } from "~/types/scenario.types";
 
@@ -134,6 +135,23 @@ export const useExperimentStore = defineStore('experiment', () => {
         }
     }
 
+    async function getDashboardData() {
+        isLoading.value = true
+        try {
+            const response = await $api<ApiResponse<DashboardStats>>('/api/v1/dashboard', {method: 'GET'})
+            if (!response.success) {
+                throw new Error(response.message)
+            }
+            toast.success("Dashboard stats fetched successfully")
+            return response.data
+        } catch (e: any) {
+            toast.error("Failed to get dashboard stats")
+            return
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         // State
         token,
@@ -150,6 +168,7 @@ export const useExperimentStore = defineStore('experiment', () => {
         getFingerprint,
         getScenario,
         submitResponse,
-        getFeedback
+        getFeedback,
+        getDashboardData
     }
 })

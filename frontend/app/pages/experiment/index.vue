@@ -1,10 +1,7 @@
 <template>
     <div class="container mx-auto px-4 py-6">
         <!-- Loading State -->
-        <div v-if="store.isLoading" class="flex flex-col items-center justify-center min-h-[50vh]">
-            <MazSpinner size="3em" />
-            <p class="mt-4 text-sm text-[hsl(var(--maz-muted))]">{{ loadingMessage }}</p>
-        </div>
+        <CommonsStateLoaderWheels v-if="store.isLoading" :text="loadingMessage" />
 
         <!-- Scenario Content -->
         <template v-else-if="scenario">
@@ -128,10 +125,13 @@
         </template>
 
         <!-- Error/Empty State -->
-        <div v-else class="flex flex-col items-center justify-center min-h-[50vh] text-center">
-            <p class="text-[hsl(var(--maz-muted))]">Failed to load scenario</p>
-            <MazBtn size="sm" class="mt-4" @click="loadScenario">Retry</MazBtn>
-        </div>
+        <CommonsStateError 
+            v-else
+            title="Failed to Load Scenario"
+            description="We couldn't load the scenario. Please try again."
+            :show-home="true"
+            @retry="loadScenario"
+        />
     </div>
 </template>
 
@@ -153,7 +153,7 @@ const router = useRouter()
 const { getCellDefinition } = useCellDefinition()
 
 // Timer configuration
-const timerDuration = computed(() => Number(config.public.timerDuration) || 12)
+const timerDuration = computed(() => Number(config.public.timerDuration) || 20)
 const timerRef = ref()
 const startTime = ref<number>(0)
 
@@ -165,7 +165,7 @@ const showQuitDialog = ref(false)
 const hasUserInteracted = ref(false)
 const loadingState = ref<'loading' | 'submitting'>('loading')
 const maxTimeoutId = ref<ReturnType<typeof setTimeout> | null>(null)
-const computedInitialTime = ref(12)
+const computedInitialTime = ref(20)
 
 // Loading message based on state
 const loadingMessage = computed(() => {
@@ -223,14 +223,14 @@ async function loadScenario() {
         ]
         for (let i = options.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [options[i], options[j]] = [options[j], options[i]]
+            [options[i], options[j]] = [options[j]!, options[i]!]
         }
         rankingOptions.value = options
         
-        // Set backup timeout and handle immediate expiry
+        // Set backup timeout (timer duration + 3s buffer)
         maxTimeoutId.value = setTimeout(() => {
             handleTimeUp()
-        }, 15000)
+        }, (timerDuration.value + 3) * 1000)
         
         if (remaining === 0) {
             handleTimeUp()

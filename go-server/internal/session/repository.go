@@ -13,6 +13,7 @@ type Repository interface {
 	Create(ctx context.Context, session *Session) error
 	GetByID(ctx context.Context, id uuid.UUID, opts ...database.QueryOption) (*Session, error)
 	Update(ctx context.Context, session *Session) error
+	CountSessions(ctx context.Context, opts ...database.QueryOption) (int64, error)
 }
 
 type repository struct {
@@ -52,4 +53,13 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID, opts ...database
 
 func (r *repository) Update(ctx context.Context, session *Session) error {
 	return database.GetDB(ctx, r.db).WithContext(ctx).Save(session).Error
+}
+
+func (r *repository) CountSessions(ctx context.Context, opts ...database.QueryOption) (int64, error) {
+	var count int64
+	db := database.GetDB(ctx, r.db).WithContext(ctx).Model(&Session{})
+	db = database.ApplyOptions(db, opts...)
+	err := db.Count(&count).Error
+
+	return count, err
 }
