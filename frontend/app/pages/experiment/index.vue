@@ -1,10 +1,7 @@
 <template>
     <div class="container mx-auto px-4 py-6">
         <!-- Loading State -->
-        <div v-if="store.isLoading" class="flex flex-col items-center justify-center min-h-[50vh]">
-            <MazSpinner size="3em" />
-            <p class="mt-4 text-sm text-[hsl(var(--maz-muted))]">{{ loadingMessage }}</p>
-        </div>
+        <CommonsStateLoaderWheels v-if="store.isLoading" :text="loadingMessage" />
 
         <!-- Scenario Content -->
         <template v-else-if="scenario">
@@ -128,10 +125,13 @@
         </template>
 
         <!-- Error/Empty State -->
-        <div v-else class="flex flex-col items-center justify-center min-h-[50vh] text-center">
-            <p class="text-[hsl(var(--maz-muted))]">Failed to load scenario</p>
-            <MazBtn size="sm" class="mt-4" @click="loadScenario">Retry</MazBtn>
-        </div>
+        <CommonsStateError 
+            v-else
+            title="Failed to Load Scenario"
+            description="We couldn't load the scenario. Please try again."
+            :show-home="true"
+            @retry="loadScenario"
+        />
     </div>
 </template>
 

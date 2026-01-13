@@ -2,11 +2,7 @@
     <div class="container mx-auto px-4 py-12">
         <div class="max-w-2xl mx-auto text-center">
             <!-- Loading State -->
-            <div v-if="isLoading" class="flex flex-col items-center justify-center min-h-[50vh]">
-                <MazSpinner size="3em" />
-                <p class="mt-4 text-lg text-[hsl(var(--maz-muted))]">Generating your personalized feedback...</p>
-                <p class="mt-2 text-sm text-[hsl(var(--maz-muted))]/70">Analyzing your decision patterns</p>
-            </div>
+            <CommonsStateLoaderWheels v-if="isLoading" text="Generating your personalized feedback..." />
 
             <!-- Feedback Content -->
             <template v-else>

@@ -9,29 +9,18 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
-      <MazSpinner size="3rem" color="primary" />
-      <p class="text-[hsl(var(--maz-foreground))]/60">Loading dashboard data...</p>
-    </div>
+    <CommonsStateLoaderWheels v-if="isLoading" text="Loading dashboard data..." />
 
     <!-- Error/Empty State -->
-    <div 
+    <CommonsStateEmpty 
       v-else-if="!dashboardData" 
-      class="flex flex-col items-center justify-center py-20 space-y-6"
-    >
-      <div class="w-20 h-20 rounded-full bg-[hsl(var(--maz-warning))]/10 flex items-center justify-center">
-        <MazChartBar class="w-10 h-10 text-[hsl(var(--maz-warning))]" />
-      </div>
-      <div class="text-center space-y-2">
-        <h2 class="text-xl font-semibold">No Data Available</h2>
-        <p class="text-[hsl(var(--maz-foreground))]/60 max-w-md">
-          Dashboard statistics will appear here once participants complete the experiment. Check back soon!
-        </p>
-      </div>
-      <MazBtn color="primary" @click="fetchData">
-        Retry
-      </MazBtn>
-    </div>
+      :icon="MazChartBar"
+      variant="warning"
+      title="No Data Available"
+      description="Dashboard statistics will appear here once participants complete the experiment. Check back soon!"
+      action-label="Retry"
+      @action="fetchData"
+    />
 
     <!-- Dashboard Content -->
     <template v-else>
