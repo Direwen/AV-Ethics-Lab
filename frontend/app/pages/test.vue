@@ -1,12 +1,211 @@
 <template>
-    <Board1 />
-    <Board2 />
-    <Board3 />
+    <div>
+        <ExperimentScenarioViewer
+            :scenario="staticScenario"
+            :ranking-options="rankingOptions"
+            :highlighted-zone="highlightedZone"
+            :is-loading="false"
+            :show-timer="false"
+            header-title="Calibration Test"
+            ranking-title="Which action are you likely to do?"
+            submit-button-text="Continue"
+            @highlight="highlightedZone = $event"
+            @interaction="hasUserInteracted = $event"
+            @submit="handleSubmit"
+        />
+    </div>
 </template>
 
 <script setup lang="ts">
-import Board1 from '~/components/samples/Board1.vue';
-import Board2 from '~/components/samples/Board2.vue';
-import Board3 from '~/components/samples/Board3.vue';
+import type { ScenarioResponse } from '~/types/response.types'
 
+definePageMeta({
+    layout: 'optional-layout'
+})
+
+// Static scenario data
+const staticScenario: ScenarioResponse = {
+    id: "a54a6291-09b0-4a68-b685-88ab2ae4eacf",
+    narrative: "An icy intersection dilemma: brake for a jaywalking cat or swerve into traffic/pedestrians.",
+    dilemma_options: {
+        maintain: "Maintain Course to Avoid Cat, Risk Braking on Ice",
+        swerve_left: "Swerve Left to Avoid Cat, Risk Hitting Sports Car or Jogger",
+        swerve_right: "Swerve Right to Avoid Cat, Risk Hitting Car or Pedestrian"
+    },
+    entities: [
+        {
+            id: "ent_vehicle_av_ego",
+            type: "vehicle_av",
+            emoji: "🚕",
+            row: 4,
+            col: 13,
+            metadata: {
+                is_star: false,
+                is_ego: true,
+                is_violation: false,
+                action: "",
+                orientation: "W"
+            }
+        },
+        {
+            id: "ent_animal_cat_0",
+            type: "animal_cat",
+            emoji: "🐈",
+            row: 4,
+            col: 11,
+            metadata: {
+                is_star: true,
+                is_ego: false,
+                is_violation: true,
+                action: "Jaywalking across road",
+                orientation: "W"
+            }
+        },
+        {
+            id: "ent_vehicle_sports_car_1",
+            type: "vehicle_sports_car",
+            emoji: "🏎️",
+            row: 5,
+            col: 11,
+            metadata: {
+                is_star: false,
+                is_ego: false,
+                is_violation: false,
+                action: "Approaching intersection",
+                orientation: "N"
+            }
+        },
+        {
+            id: "ent_ped_jogger_2",
+            type: "ped_jogger",
+            emoji: "🏃‍♀️",
+            row: 5,
+            col: 9,
+            metadata: {
+                is_star: false,
+                is_ego: false,
+                is_violation: true,
+                action: "Jaywalking across road",
+                orientation: "S"
+            }
+        },
+        {
+            id: "ent_vehicle_car_3",
+            type: "vehicle_car",
+            emoji: "🚗",
+            row: 3,
+            col: 11,
+            metadata: {
+                is_star: false,
+                is_ego: false,
+                is_violation: false,
+                action: "Stopped at intersection",
+                orientation: "N"
+            }
+        },
+        {
+            id: "ent_ped_adult_4",
+            type: "ped_adult",
+            emoji: "🧍",
+            row: 2,
+            col: 10,
+            metadata: {
+                is_star: false,
+                is_ego: false,
+                is_violation: true,
+                action: "Jaywalking into street",
+                orientation: ""
+            }
+        }
+    ],
+    factors: {
+        visibility: "Clear",
+        road_condition: "Icy",
+        location: "CN",
+        brake_status: "Active",
+        speed: "High",
+        has_tailgater: false,
+        primary_entity: "animal_cat",
+        primary_behavior: "Violation",
+        background_entities: ["ped_jogger", "ped_business", "obstacle_barrier", "vehicle_car", "ped_business", "ped_jogger", "vehicle_sports_car", "ped_business", "ped_adult", "vehicle_car"]
+    },
+    width: 20,
+    height: 11,
+    grid_data: [
+        [0,0,0,0,0,0,0,0,19,10,17,10,20,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,19,10,17,10,20,0,0,0,0,0,0,0],
+        [1,1,1,1,1,1,1,1,19,15,15,15,20,1,1,1,1,1,1,1],
+        [3,3,3,3,3,3,3,3,5,11,17,11,7,3,3,3,3,3,3,3],
+        [9,9,9,9,9,9,9,16,11,11,11,11,11,16,9,9,9,9,9,9],
+        [18,18,18,18,18,18,18,16,18,11,11,11,18,16,18,18,18,18,18,18],
+        [9,9,9,9,9,9,9,16,11,11,11,11,11,16,9,9,9,9,9,9],
+        [4,4,4,4,4,4,4,4,6,11,17,11,8,4,4,4,4,4,4,4],
+        [2,2,2,2,2,2,2,2,19,15,15,15,20,2,2,2,2,2,2,2],
+        [0,0,0,0,0,0,0,0,19,10,17,10,20,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,19,10,17,10,20,0,0,0,0,0,0,0]
+    ],
+    lane_config: {
+        E: [[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,7],[6,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[6,15],[6,16],[6,17],[6,18],[6,19]],
+        N: [[0,11],[1,11],[2,11],[3,11],[4,11],[5,11],[6,11],[7,11],[8,11],[9,11],[10,11]],
+        S: [[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[6,9],[7,9],[8,9],[9,9],[10,9]],
+        W: [[4,0],[4,1],[4,2],[4,3],[4,4],[4,5],[4,6],[4,7],[4,8],[4,9],[4,10],[4,11],[4,12],[4,13],[4,14],[4,15],[4,16],[4,17],[4,18],[4,19]]
+    },
+    trident_zones: {
+        zone_a: {
+            coordinates: [
+                { row: 4, col: 11, surface: "drivable", orientation: "W" },
+                { row: 4, col: 10, surface: "drivable", orientation: "W" },
+                { row: 4, col: 9, surface: "drivable", orientation: "W" }
+            ]
+        },
+        zone_b: {
+            coordinates: [
+                { row: 5, col: 11, surface: "drivable", orientation: "N" },
+                { row: 5, col: 10, surface: "drivable", orientation: "" },
+                { row: 5, col: 9, surface: "drivable", orientation: "S" }
+            ]
+        },
+        zone_c: {
+            coordinates: [
+                { row: 3, col: 11, surface: "drivable", orientation: "N" },
+                { row: 2, col: 10, surface: "drivable", orientation: "" },
+                { row: 3, col: 9, surface: "drivable", orientation: "S" }
+            ]
+        }
+    },
+    template_name: "4-Way Urban Intersection",
+    current_step: 1,
+    total_steps: 2
+}
+
+// State
+const highlightedZone = ref<string | null>(null)
+const hasUserInteracted = ref(false)
+
+// Initialize ranking options with randomization
+const rankingOptions = ref((() => {
+    const options = [
+        { key: 'maintain', label: staticScenario.dilemma_options.maintain, zone: 'zone_a' },
+        { key: 'swerve_left', label: staticScenario.dilemma_options.swerve_left, zone: 'zone_b' },
+        { key: 'swerve_right', label: staticScenario.dilemma_options.swerve_right, zone: 'zone_c' },
+    ]
+    
+    // Randomize to prevent passive agreement bias
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j]!, options[i]!]
+    }
+    
+    return options
+})())
+
+function handleSubmit() {
+    console.log('Calibration response:', {
+        ranking_order: rankingOptions.value.map(opt => opt.key),
+        has_interacted: hasUserInteracted.value
+    })
+    
+    // For testing, just show an alert
+    alert(`Calibration complete!\nRanking: ${rankingOptions.value.map(opt => opt.key).join(' > ')}\nInteracted: ${hasUserInteracted.value}`)
+}
 </script>
