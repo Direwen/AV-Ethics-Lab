@@ -1,8 +1,8 @@
 <template>
     <div
-        class="flex flex-col items-center justify-center w-full max-w-5xl mx-auto space-y-16"
+        class="flex flex-col items-center justify-center w-full max-w-5xl mx-auto space-y-12 sm:space-y-16 px-4"
     >
-        <section class="text-center space-y-8 py-12 relative z-10">
+        <section class="text-center space-y-6 sm:space-y-8 py-10 sm:py-12 relative z-10">
             <div
                 class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[hsl(var(--maz-primary))] bg-[hsl(var(--maz-primary))]/10 text-sm font-medium text-[hsl(var(--maz-primary))]"
             >
@@ -17,7 +17,7 @@
                 Active Research Study
             </div>
 
-            <h1 class="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+            <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-tight">
                 <span class="whitespace-nowrap">Ethical&nbsp;Decisions</span> in
                 <span
                     class="text-transparent bg-clip-text bg-gradient-to-br from-[hsl(var(--maz-primary))] to-[hsl(var(--maz-accent))] whitespace-nowrap"
@@ -27,18 +27,18 @@
             </h1>
 
             <p
-                class="text-lg md:text-xl text-[hsl(var(--maz-foreground))] opacity-70 max-w-2xl mx-auto leading-relaxed"
+                class="text-base sm:text-lg md:text-xl text-[hsl(var(--maz-foreground))] opacity-70 max-w-2xl mx-auto leading-relaxed"
             >
                 Contribute to academic research on moral decision-making in autonomous vehicles. Your responses help shape ethical frameworks for self-driving technology.
             </p>
 
             <div
-                class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+                class="flex items-center justify-center gap-3 sm:gap-4 pt-4"
             >
                 <NuxtLink to="/experiment/consent">
                     <MazBtn
-                        size="xl"
-                        class="rounded-xl shadow-xl shadow-[hsl(var(--maz-primary))]/20 custom-background-gradient hover:scale-105 transition-transform"
+                        size="lg"
+                        class="md:size-xl rounded-xl shadow-xl shadow-[hsl(var(--maz-primary))]/20 custom-background-gradient hover:scale-105 transition-transform"
                     >
                         Start Experiment
                     </MazBtn>
@@ -49,8 +49,8 @@
                         pastel
                         color="background"
                         variant="text"
-                        size="xl"
-                        class="shadow hover:scale-105 transition-transform"
+                        size="lg"
+                        class="md:size-xl shadow hover:scale-105 transition-transform"
                     >
                         Dashboard
                     </MazBtn>

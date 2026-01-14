@@ -87,10 +87,10 @@
                 </SimulationScenarioContainer>
             </section>
 
-            <section class="flex flex-col">
+            <section class="mt-6 lg:mt-0 flex flex-col">
                 <!-- Situation Brief -->
                 <h2 class="text-sm font-medium uppercase tracking-wider text-[hsl(var(--maz-muted))] mb-3">
-                    Scenario
+                    Narrative
                 </h2>
                 <p class="text-base tracking-wider leading-relaxed text-[hsl(var(--maz-muted-foreground))]">{{ scenario.narrative }}</p>
 
