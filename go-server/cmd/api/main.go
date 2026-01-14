@@ -101,10 +101,15 @@ func main() {
 		log.Fatal("LOCAL_FRONTEND_PORT is not set")
 	}
 
+	origins := []string{
+		fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
+	}
+	if clientURL := os.Getenv("CLIENT_URL"); clientURL != "" {
+		origins = append(origins, clientURL)
+	}
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
-		},
+		AllowOrigins: origins,
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
