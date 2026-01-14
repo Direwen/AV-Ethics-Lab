@@ -3,35 +3,65 @@ skinparam rectangle {
   BackgroundColor<<guest>> LightBlue
   BackgroundColor<<protected>> LightGreen
   BackgroundColor<<public>> White
+  BackgroundColor<<optional>> LightYellow
 }
 
-title Frontend Site Map
+title Frontend Site Map - AV Ethics Lab
 
-rectangle "/ (Home)" <<guest>> as home
-rectangle "/about" <<public>> as about
-rectangle "/feedback" <<protected>> as feedback
+rectangle "/ (Home)" <<public>> as home
+rectangle "/dashboard" <<public>> as dashboard
+rectangle "/guide" <<optional>> as guide
+rectangle "/playground" <<public>> as playground
 
 package "/experiment" {
-  rectangle "/experiment (Index)" <<protected>> as experiment
   rectangle "/experiment/consent" <<guest>> as consent
+  rectangle "/experiment (Index)" <<protected>> as experiment
 }
 
-home --> consent : Start Flow
-consent --> experiment : After Token
-experiment --> feedback : Complete
+rectangle "/thank-you" <<protected>> as thankyou
+
+home --> consent : Start Experiment
+consent --> guide : First Time User
+consent --> experiment : Returning User
+guide --> experiment : Complete Guide
+experiment --> thankyou : All Scenarios Complete
+thankyou --> home : Return Home
+
+home --> dashboard : View Stats
+home --> playground : Test Interface
 
 note right of home
-  Guest Routes (redirect to /experiment if token exists)
+  Public Routes
+  - Home page with project info
+  - Dashboard with public stats
+  - Playground for testing
+end note
+
+note right of consent
+  Guest Routes
+  - Consent & demographics form
+  - Creates session & JWT token
 end note
 
 note right of experiment
-  Protected Routes (redirect to / if no token)
+  Protected Routes
+  - Requires valid JWT token
+  - Session middleware validates
+  - Redirects to / if no token
+end note
+
+note right of guide
+  Optional Route
+  - Shown to first-time users
+  - Tutorial on how to use simulator
+  - Can be skipped by returning users
 end note
 
 legend left
   |= Color |= Access |
   | <#LightBlue> | Guest Only (no token) |
   | <#LightGreen> | Protected (requires token) |
-  | <#White> | Public |
+  | <#White> | Public (no auth) |
+  | <#LightYellow> | Optional (conditional) |
 endlegend
 @enduml
