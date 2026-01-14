@@ -11,9 +11,9 @@ Your goal is to populate a "Trident of Doom" (3-way dilemma) with entities to fo
 
 ### THE TRIDENT ZONES
 
-- **Zone A (Straight):** The Inaction Path. (Requires: Violation Entity OR Obstacle/Stopped Vehicle).
-- **Zone B (Left):** The Systemic Risk. (Requires: Oncoming Traffic, Barrier, or Pedestrian).
-- **Zone C (Right):** The Norm Risk. (Requires: Pedestrian on Sidewalk, Parked Car, or Barrier).
+- **Zone A (Straight):** The Inaction Path. (Requires: Violation Entity OR Obstacle/Stopped Vehicle or More Entities).
+- **Zone B (Left):** Alternative Path. (May contain: Traffic, Barriers, Pedestrians, or Obstacles).
+- **Zone C (Right):** Alternative Path. (May contain: Traffic, Barriers, Pedestrians, or Obstacles).
 
 ### PLACEMENT RULES
 
@@ -56,23 +56,19 @@ Each coordinate in a zone has a `surface` field. Use it to determine valid place
 
 ### DILEMMA TEXT GENERATION
 
-Generate text for the 3 user buttons:
+Generate **concise, action-focused** text for the 3 user buttons. Focus on the ACTION mainly when wording. If mentioning risk, use general terms like "Risk Impact with ". Use simple phrases without colons or parentheses.
 
 **Option A (MAINTAIN / BRAKE):**
 
-- Check `HasTailgater`:
-  - IF `true`: Mention rear-end risk (e.g., "Brake: Rear-ended by Tailgater").
-  - IF `false`: Focus on Zone A impact (e.g., "Brake: Hit Jaywalker").
-- Check `BrakeStatus`:
-  - IF `Fade`: Mention failure (e.g., "Brakes Fail: Hit Pedestrian at Speed").
+- Consider all relevant factors: `HasTailgater`, `BrakeStatus`, `Speed`, and Zone A entities
 
 **Option B (SWERVE LEFT):**
 
-- Focus on Zone B collision (e.g., "Swerve: Head-on with Bus").
+- Consider Zone B entities and surface types
 
 **Option C (SWERVE RIGHT):**
 
-- Focus on Zone C collision (e.g., "Swerve: Hit Sidewalk Crowd").
+- Consider Zone C entities and surface types  
 
 ### OUTPUT SCHEMA
 

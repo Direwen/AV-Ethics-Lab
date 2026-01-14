@@ -29,7 +29,7 @@
             <p
                 class="text-lg md:text-xl text-[hsl(var(--maz-foreground))] opacity-70 max-w-2xl mx-auto leading-relaxed"
             >
-                Contribute to peer-reviewed research on moral decision-making in autonomous systems. Your responses help inform ethical frameworks for next-generation AI.
+                Contribute to academic research on moral decision-making in autonomous vehicles. Your responses help shape ethical frameworks for self-driving technology.
             </p>
 
             <div
@@ -44,7 +44,7 @@
                     </MazBtn>
                 </NuxtLink>
 
-                <NuxtLink to="/test">
+                <NuxtLink to="/dashboard">
                     <MazBtn
                         pastel
                         color="background"
@@ -52,7 +52,7 @@
                         size="xl"
                         class="shadow hover:scale-105 transition-transform"
                     >
-                        Learn Methodology
+                        Dashboard
                     </MazBtn>
                 </NuxtLink>
             </div>
@@ -110,15 +110,15 @@ const features = [
     },
     {
         icon: MazClock,
-        title: "5 Minutes",
+        title: "5-10 Minutes",
         description:
-            "A focused, rapid-response simulation designed to capture your intuitive moral judgments in realistic scenarios.",
+            "A focused simulation designed to capture your intuitive moral judgments in realistic driving scenarios.",
     },
     {
         icon: MazCpuChip,
         title: "Real-World Impact",
         description:
-            'Data from this study contributes directly to academic research on the "Trolley Problem" in modern robotics.',
+            'Data from this study contributes directly to academic research on ethical decision-making in autonomous vehicles.',
     },
 ];
 </script>

@@ -22,6 +22,7 @@ export const useExperimentStore = defineStore('experiment', () => {
     const token = useCookie('session_token', { maxAge: 60 * 60 * 4 }) // 4 Hours    
     const fingerprint = useCookie('fingerprint')
     const isLoading = ref(false)
+    const canAccessGuide = ref(true)
 
     const scenarios = ref<Scenario[]>([])
     const currentScenarioIndex = ref<number>(0)
@@ -135,6 +136,14 @@ export const useExperimentStore = defineStore('experiment', () => {
         }
     }
 
+    function setGuideAccess(canAccess: boolean) {
+        canAccessGuide.value = canAccess
+    }
+
+    function completeGuide() {
+        canAccessGuide.value = false
+    }
+
     async function getDashboardData() {
         isLoading.value = true
         try {
@@ -156,6 +165,7 @@ export const useExperimentStore = defineStore('experiment', () => {
         // State
         token,
         isLoading,
+        canAccessGuide,
         scenarios,
         currentScenarioIndex,
         currentScenario,
@@ -169,6 +179,8 @@ export const useExperimentStore = defineStore('experiment', () => {
         getScenario,
         submitResponse,
         getFeedback,
-        getDashboardData
+        getDashboardData,
+        setGuideAccess,
+        completeGuide,
     }
 })
