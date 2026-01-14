@@ -7,7 +7,7 @@
             <div class="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
             
             <NuxtLink to="/" class="flex items-center gap-3 group">
-                <Logo size="md" />
+                <CommonsLogo size="md" />
                 <span class="text-lg font-semibold tracking-tight group-hover:text-[hsl(var(--maz-primary))] transition-colors">
                 AV Ethics Lab
                 </span>
@@ -16,7 +16,7 @@
             <nav class="hidden md:flex items-center gap-6">
                 
                 <div class="flex items-center gap-2">
-                    <ThemeToggle />
+                    <CommonsThemeToggle />
                 </div>
                 
                 <NuxtLink to="/experiment/consent">
@@ -49,15 +49,7 @@
                 </div>
 
                 <div class="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-                    <a
-                        href="mailto:myomyothannaing.1983@gmail.com"
-                        class="hover:text-[hsl(var(--maz-primary))] transition-colors"
-                    >
-                        Supervisor: Dr. Myo Myo Than Naing
-                    </a>
-                    
-                    <span class="hidden md:inline opacity-30">|</span>
-                    
+                                        
                     <span class="opacity-70" title="Computing Project">
                         Module: CET300
                     </span>
@@ -69,6 +61,4 @@
 </template>
 
 <script setup lang="ts">
-import Logo from '~/components/commons/Logo.vue';
-import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>
