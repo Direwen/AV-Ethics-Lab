@@ -74,7 +74,7 @@ import { useExperimentStore } from '~/stores/experiment'
 
 definePageMeta({
     layout: 'optional-layout',
-    // middleware: ['guide']
+    middleware: ['guide']
 })
 
 // Static scenario data
