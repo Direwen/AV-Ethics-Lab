@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <ThemeToggle />
+                    <CommonThemeToggle />
                 </div>
 
             </div>
@@ -39,5 +39,4 @@
 
 <script setup lang="ts">
 import { MazArrowSmallLeft } from '@maz-ui/icons'
-import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>

@@ -13,6 +13,7 @@ import (
 	"github.com/direwen/go-server/internal/response"
 	"github.com/direwen/go-server/internal/scenario"
 	"github.com/direwen/go-server/internal/session"
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/template"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/direwen/go-server/pkg/database"
@@ -34,17 +35,10 @@ func main() {
 	db := config.GetDB()
 	txManager := database.NewTransactionManager(db)
 
-	// Init LLM Clients
-	scenarioLLM, err := llm.NewClient(llm.TaskScenario)
-	if err != nil {
-		log.Fatal("Failed to create scenario LLM client: ", err)
-	}
-	scenarioLLMClient := scenarioLLM.(llm.ScenarioClient)
-	feedbackLLM, err := llm.NewClient(llm.TaskFeedback)
-	if err != nil {
-		log.Fatal("Failed to create feedback LLM client: ", err)
-	}
-	feedbackLLMClient := feedbackLLM.(llm.FeedbackClient)
+	// Init LLM Client Pool
+	pool := llm.NewClientPool()
+	pool.Register(domain.TaskScenario, "GROQ_API_KEY")
+	pool.Register(domain.TaskFeedback, "OPENROUTER_API_KEY")
 
 	// Template
 	templateRepo := template.NewRepository(db)
@@ -63,7 +57,7 @@ func main() {
 
 	// Session
 	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(sessionRepo, feedbackLLMClient)
+	sessionService := session.NewService(sessionRepo, pool)
 	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario
@@ -72,7 +66,7 @@ func main() {
 		scenarioRepo,
 		sessionService,
 		templateService,
-		scenarioLLMClient,
+		pool,
 	)
 	scenarioHandler := scenario.NewHandler(scenarioService)
 
@@ -107,10 +101,15 @@ func main() {
 		log.Fatal("LOCAL_FRONTEND_PORT is not set")
 	}
 
+	origins := []string{
+		fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
+	}
+	if clientURL := os.Getenv("CLIENT_URL"); clientURL != "" {
+		origins = append(origins, clientURL)
+	}
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			fmt.Sprintf("http://localhost:%s", os.Getenv("LOCAL_FRONTEND_PORT")),
-		},
+		AllowOrigins: origins,
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 

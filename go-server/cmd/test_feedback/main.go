@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/shared/domain"
@@ -18,7 +19,13 @@ func main() {
 
 	fmt.Println("Creating feedback LLM client...")
 
-	client, err := llm.NewClient(llm.TaskFeedback)
+	// Get API key from environment
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	if apiKey == "" {
+		log.Fatal("OPENROUTER_API_KEY not set in environment")
+	}
+
+	client, err := llm.NewClient(domain.TaskFeedback, apiKey)
 	if err != nil {
 		log.Fatalf("Failed to create feedback client: %v", err)
 	}

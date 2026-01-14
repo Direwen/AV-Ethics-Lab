@@ -2,8 +2,8 @@ package llm
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/direwen/go-server/internal/shared/domain"
 	"github.com/direwen/go-server/internal/util"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
@@ -17,17 +17,17 @@ type TaskConfig struct {
 }
 
 // NewClient creates a client for the specified task
-func NewClient(task Task) (any, error) {
+func NewClient(task domain.LLMTask, key string) (domain.Client, error) {
 	config := getTaskConfig(task)
-	model, err := initModel(config)
+	model, err := initModel(config, key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init model for task %s: %w", task, err)
 	}
 
 	switch task {
-	case TaskScenario:
+	case domain.TaskScenario:
 		return newScenarioClient(model), nil
-	case TaskFeedback:
+	case domain.TaskFeedback:
 		return newFeedbackClient(model), nil
 	default:
 		return nil, fmt.Errorf("unsupported task: %s", task)
@@ -35,14 +35,14 @@ func NewClient(task Task) (any, error) {
 }
 
 // getTaskConfig reads config from env based on task
-func getTaskConfig(task Task) TaskConfig {
+func getTaskConfig(task domain.LLMTask) TaskConfig {
 	switch task {
-	case TaskScenario:
+	case domain.TaskScenario:
 		return TaskConfig{
 			Model:    util.GetEnvOrDefault("SCENARIO_MODEL", "qwen/qwen3-32b"),
 			Provider: Provider(util.GetEnvOrDefault("SCENARIO_PROVIDER", "groq")),
 		}
-	case TaskFeedback:
+	case domain.TaskFeedback:
 		return TaskConfig{
 			Model:    util.GetEnvOrDefault("FEEDBACK_MODEL", "nvidia/nemotron-nano-9b-v2:free"),
 			Provider: Provider(util.GetEnvOrDefault("FEEDBACK_PROVIDER", "openrouter")),
@@ -53,7 +53,13 @@ func getTaskConfig(task Task) TaskConfig {
 }
 
 // initModel creates the LLM model based on provider
-func initModel(config TaskConfig) (llms.Model, error) {
+func initModel(config TaskConfig, keys ...string) (llms.Model, error) {
+
+	var key string
+	if len(keys) > 0 {
+		key = keys[0]
+	}
+
 	switch config.Provider {
 	case ProviderOpenAI:
 		return openai.New(
@@ -69,14 +75,14 @@ func initModel(config TaskConfig) (llms.Model, error) {
 		return openai.New(
 			openai.WithModel(config.Model),
 			openai.WithBaseURL("https://api.groq.com/openai/v1"),
-			openai.WithToken(os.Getenv("GROQ_API_KEY")),
+			openai.WithToken(key),
 			openai.WithResponseFormat(openai.ResponseFormatJSON),
 		)
 	case ProviderOpenRouter:
 		return openai.New(
 			openai.WithModel(config.Model),
 			openai.WithBaseURL("https://openrouter.ai/api/v1"),
-			openai.WithToken(os.Getenv("OPENROUTER_API_KEY")),
+			openai.WithToken(key),
 			openai.WithResponseFormat(openai.ResponseFormatJSON),
 		)
 	default:

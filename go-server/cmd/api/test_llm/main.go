@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/direwen/go-server/internal/platform/llm"
 	"github.com/direwen/go-server/internal/shared/domain"
@@ -19,8 +20,14 @@ func main() {
 
 	fmt.Println("Creating scenario LLM client...")
 
+	// Get API key from environment
+	apiKey := os.Getenv("GROQ_API_KEY")
+	if apiKey == "" {
+		log.Fatal("GROQ_API_KEY not set in environment")
+	}
+
 	// Create client using strategy pattern
-	client, err := llm.NewClient(llm.TaskScenario)
+	client, err := llm.NewClient(domain.TaskScenario, apiKey)
 	if err != nil {
 		log.Fatalf("Failed to create LLM client: %v", err)
 	}
