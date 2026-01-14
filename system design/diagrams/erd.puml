@@ -3,14 +3,24 @@
 !define TABLE(x) entity x << (T,#FFAAAA) >>
 
 skinparam linetype ortho
+skinparam roundcorner 10
+skinparam shadowing false
 
 TABLE(sessions) {
   * id : uuid <<PK>>
   --
-  demographics : jsonb
   fingerprint : varchar(255)
   is_duplicate : boolean
   self_reported_new : boolean
+  age_range : smallint
+  gender : smallint
+  country : varchar(10)
+  occupation : varchar(50)
+  driving_experience : smallint
+  status : smallint
+  expires_at : timestamp
+  experiment_plan : jsonb
+  feedback : jsonb
   created_at : timestamp
   updated_at : timestamp
   deleted_at : timestamp
@@ -20,7 +30,11 @@ TABLE(context_templates) {
   * id : uuid <<PK>>
   --
   name : varchar
-  base_grid : jsonb
+  width : int
+  height : int
+  grid_data : jsonb
+  lane_config : jsonb
+  meta : jsonb
   created_at : timestamp
   updated_at : timestamp
   deleted_at : timestamp
@@ -31,8 +45,12 @@ TABLE(scenarios) {
   --
   * context_template_id : uuid <<FK>>
   * session_id : uuid <<FK>>
-  entity_placements : jsonb
-  environment_factors : jsonb
+  entities : jsonb
+  factors : jsonb
+  dilemma_options : jsonb
+  narrative : text
+  trident_spawn : jsonb
+  started_at : timestamp
   created_at : timestamp
   updated_at : timestamp
   deleted_at : timestamp
@@ -41,9 +59,11 @@ TABLE(scenarios) {
 TABLE(responses) {
   * id : uuid <<PK>>
   --
-  * scenario_id : uuid <<FK>>
+  * scenario_id : uuid <<FK>> <<UNIQUE>>
   ranking_order : jsonb
-  reaction_time : bigint
+  is_timeout : boolean
+  has_interacted : boolean
+  response_time_ms : bigint
   created_at : timestamp
   updated_at : timestamp
   deleted_at : timestamp
@@ -52,5 +72,27 @@ TABLE(responses) {
 sessions ||--o{ scenarios : "has many"
 context_templates ||--o{ scenarios : "has many"
 scenarios ||--o| responses : "has one"
+
+note right of sessions
+  Session tracks participant
+  demographics and experiment
+  plan. Status: Active, Completed,
+  Expired, Abandoned
+end note
+
+note right of scenarios
+  Each scenario contains:
+  - Entity placements (JSON)
+  - Environmental factors
+  - Dilemma options
+  - Trident spawn point
+end note
+
+note right of responses
+  Response captures:
+  - Ranked action preferences
+  - Response time
+  - Timeout/interaction flags
+end note
 
 @enduml

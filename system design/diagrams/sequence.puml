@@ -1,0 +1,113 @@
+@startuml Sequence Diagram - Experiment Flow
+
+actor User
+participant "Frontend\n(Nuxt.js)" as Frontend
+participant "API Server\n(Go/Echo)" as API
+participant "LLM Pool\n(Groq/OpenRouter)" as LLM
+database "PostgreSQL\nDatabase" as DB
+
+== Session Creation ==
+User -> Frontend: Access Home Page
+User -> Frontend: Click "Start Experiment"
+Frontend -> Frontend: Generate Fingerprint (FingerprintJS)
+User -> Frontend: Fill Consent & Demographics Form
+Frontend -> API: POST /api/v1/sessions\n{ demographics, fingerprint, self_reported_new }
+API -> DB: Check if fingerprint exists
+API -> DB: Generate Balanced Experiment Plan
+API -> DB: Create Session Record
+API -> API: Generate JWT Token
+API -> Frontend: Return { token }
+Frontend -> Frontend: Store token in cookie
+
+== Guide (First Time Users) ==
+alt First Time User
+    Frontend -> Frontend: Redirect to /guide
+    User -> Frontend: Complete Tutorial
+    Frontend -> Frontend: Mark guide as completed
+end
+
+== Scenario Generation Loop ==
+loop For each scenario in experiment plan
+    Frontend -> API: GET /api/v1/scenarios/next\n(Authorization: Bearer token)
+    API -> DB: Validate Session & Token
+    API -> DB: Check for pending scenario
+    
+    alt Pending Scenario Exists
+        API -> DB: Update started_at timestamp
+        API -> DB: Load scenario data
+        API -> Frontend: Return scenario data
+    else Generate New Scenario
+        API -> API: Pick unused template
+        API -> API: Select random trident spawn point
+        API -> API: Calculate trident zones (A, B, C)
+        API -> LLM: Generate Scenario\n{ template, factors, zones, ego_position }
+        LLM -> LLM: Place entities respecting surfaces
+        LLM -> LLM: Generate narrative & dilemma options
+        LLM -> API: Return { entities, narrative, dilemma_options }
+        API -> API: Enrich entities with IDs & emojis
+        API -> API: Inject tailgater if needed
+        API -> DB: Save scenario with started_at
+        API -> Frontend: Return scenario data
+    end
+    
+    Frontend -> Frontend: Display scenario with timer (20s)
+    User -> Frontend: Rank options (drag & drop)
+    Frontend -> Frontend: Track interaction & time
+    
+    alt Timer Expires
+        Frontend -> Frontend: Auto-submit with timeout flag
+    else User Submits
+        Frontend -> Frontend: Calculate response time
+    end
+    
+    Frontend -> API: POST /api/v1/scenarios/:id/responses\n{ ranking_order, response_time_ms, is_timeout, has_interacted }
+    API -> DB: Validate session & scenario ownership
+    API -> DB: Check response time against started_at
+    API -> DB: Create response record (transaction)
+    API -> DB: Count responses for session
+    alt All scenarios complete
+        API -> DB: Update session status = Completed
+        API -> Frontend: Return { is_complete: true }
+    else More scenarios remaining
+        API -> Frontend: Return { is_complete: false }
+    end
+    
+    alt Experiment Complete
+        Frontend -> Frontend: Redirect to /thank-you
+    else More Scenarios
+        Frontend -> Frontend: Load next scenario
+    end
+end
+
+== Feedback Generation ==
+Frontend -> API: GET /api/v1/sessions/feedback\n(Authorization: Bearer token)
+API -> DB: Validate session is completed
+API -> DB: Load session with scenarios & responses
+alt Feedback Cached
+    API -> DB: Load cached feedback
+    API -> Frontend: Return cached feedback
+else Generate Feedback
+    API -> API: Build enriched responses
+    API -> LLM: Generate Feedback\n{ demographic, responses }
+    LLM -> LLM: Analyze decision patterns
+    LLM -> LLM: Classify archetype
+    LLM -> API: Return { archetype, summary, key_trait }
+    API -> DB: Cache feedback in session record
+    API -> Frontend: Return feedback
+end
+Frontend -> Frontend: Display personalized feedback
+Frontend -> Frontend: Clear session token
+
+== Dashboard (Public) ==
+User -> Frontend: Access /dashboard
+Frontend -> API: GET /api/v1/dashboard
+API -> DB: Aggregate statistics
+API -> DB: Calculate outcome distributions
+API -> DB: Analyze tailgater effect
+API -> DB: Analyze compliance effect
+API -> DB: Get time distributions
+API -> DB: Get archetype distributions
+API -> Frontend: Return dashboard stats
+Frontend -> Frontend: Render charts & visualizations
+
+@enduml
