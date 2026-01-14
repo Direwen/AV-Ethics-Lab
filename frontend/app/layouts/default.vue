@@ -13,19 +13,19 @@
                 </span>
             </NuxtLink>
 
-            <nav class="hidden md:flex items-center gap-6">
+            <nav class="flex items-center gap-3 sm:gap-4">
                 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <CommonsThemeToggle />
                 </div>
                 
-                <NuxtLink to="/experiment/consent">
-                <MazBtn 
-                    size="sm" 
-                    class="custom-background-gradient rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
-                >
-                    Get Started
-                </MazBtn>
+                <NuxtLink to="/experiment/consent" class="hidden sm:inline-flex ">
+                    <MazBtn 
+                        size="sm" 
+                        class="custom-background-gradient rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all px-3 sm:px-4"
+                    >
+                        Get Started
+                    </MazBtn>
                 </NuxtLink>
             </nav>
 
