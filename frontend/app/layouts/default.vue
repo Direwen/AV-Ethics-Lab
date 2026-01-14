@@ -19,7 +19,7 @@
                     <ThemeToggle />
                 </div>
                 
-                <NuxtLink to="/auth/consent">
+                <NuxtLink to="/experiment/consent">
                 <MazBtn 
                     size="sm" 
                     class="custom-background-gradient rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
@@ -29,9 +29,6 @@
                 </NuxtLink>
             </nav>
 
-            <button class="md:hidden p-2 text-[hsl(var(--maz-foreground))]">
-                <MazBars3 class="h-6 w-6" />
-            </button>
             </div>
         </header>
 
@@ -72,7 +69,6 @@
 </template>
 
 <script setup lang="ts">
-import { MazBars3 } from '@maz-ui/icons';
 import Logo from '~/components/commons/Logo.vue';
 import ThemeToggle from '~/components/commons/ThemeToggle.vue';
 </script>

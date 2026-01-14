@@ -54,14 +54,13 @@ const interactionCount = ref(0)
 
 const localOptions = ref([...props.options])
 
-// Watch for external changes
+// Watch for external changes - only sync if arrays are actually different
 watch(() => props.options, (newVal) => {
-    localOptions.value = [...newVal]
-}, { deep: true })
-
-// Emit changes when dragged
-watch(localOptions, (newVal) => {
-    emit('update:options', newVal)
+    const newKeys = newVal.map(o => o.key).join(',')
+    const localKeys = localOptions.value.map(o => o.key).join(',')
+    if (newKeys !== localKeys) {
+        localOptions.value = [...newVal]
+    }
 }, { deep: true })
 
 function trackInteraction() {
@@ -80,9 +79,13 @@ function onDragStart() {
 
 function onDragEnd() {
     dragging.value = false
+    // Emit the final order after drag completes
+    emit('update:options', [...localOptions.value])
+    emit('highlight', null)
 }
 
 function onHover(zone: string | null) {
+    if (dragging.value) return
     emit('highlight', zone)
     if (zone !== null) {
         trackInteraction()

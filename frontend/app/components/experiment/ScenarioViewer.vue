@@ -183,14 +183,22 @@ const { getCellDefinition } = useCellDefinition()
 // Local copy of ranking options for v-model
 const localRankingOptions = ref([...props.rankingOptions])
 
-// Watch for external changes
+// Watch for external changes - only sync if arrays are actually different
 watch(() => props.rankingOptions, (newVal) => {
-    localRankingOptions.value = [...newVal]
+    const newKeys = newVal.map(o => o.key).join(',')
+    const localKeys = localRankingOptions.value.map(o => o.key).join(',')
+    if (newKeys !== localKeys) {
+        localRankingOptions.value = [...newVal]
+    }
 }, { deep: true })
 
-// Emit changes when ranking options change
+// Emit changes when ranking options change - only if different from props
 watch(localRankingOptions, (newVal) => {
-    emit('update:rankingOptions', newVal)
+    const newKeys = newVal.map(o => o.key).join(',')
+    const propKeys = props.rankingOptions.map(o => o.key).join(',')
+    if (newKeys !== propKeys) {
+        emit('update:rankingOptions', [...newVal])
+    }
 }, { deep: true })
 
 // Highlight logic from composable

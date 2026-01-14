@@ -46,7 +46,7 @@
                         </h4>
                         <ul class="text-xs space-y-2 opacity-70 list-disc list-inside">
                             <li>GDPR Compliant</li>
-                            <li>No PII (IP/Email) stored</li>
+                            <li>No email or IP addresses stored</li>
                             <li>Aggregate analysis only</li>
                         </ul>
                     </div>
