@@ -189,7 +189,7 @@ const ageRangeOptions = [
 const genderOptions = [
     { label: 'Male', value: 1 },
     { label: 'Female', value: 2 },
-    { label: 'Non-binary / Third gender', value: 3 },
+    { label: 'Non-binary', value: 3 },
     { label: 'Prefer not to say', value: 4 }
 ]
 
