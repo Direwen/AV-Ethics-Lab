@@ -23,14 +23,14 @@ type Service interface {
 }
 
 type service struct {
-	repo              Repository
-	feedbackLLMClient domain.FeedbackLLMClient
+	repo    Repository
+	llmPool domain.LLMPool
 }
 
-func NewService(repo Repository, feedbackLLMClient domain.FeedbackLLMClient) Service {
+func NewService(repo Repository, llmPool domain.LLMPool) Service {
 	return &service{
-		repo:              repo,
-		feedbackLLMClient: feedbackLLMClient,
+		repo:    repo,
+		llmPool: llmPool,
 	}
 }
 
@@ -171,13 +171,17 @@ func (s *service) GetSessionFeedback(ctx context.Context, sessionID uuid.UUID) (
 	}
 
 	// Generate feedback via LLM
-	feedback, err := s.feedbackLLMClient.GenerateFeedback(ctx, domain.FeedbackLLMRequest{
-		Demographic: demographic,
-		Responses:   responses,
+	result, err := s.llmPool.Execute(domain.TaskFeedback, func(client domain.Client) (any, error) {
+		feedbackClient := client.(domain.FeedbackLLMClient)
+		return feedbackClient.GenerateFeedback(ctx, domain.FeedbackLLMRequest{
+			Demographic: demographic,
+			Responses:   responses,
+		})
 	})
 	if err != nil {
 		return nil, err
 	}
+	feedback := result.(*domain.FeedbackLLMResponse)
 
 	// Cache feedback in DB
 	feedbackJSON, err := json.Marshal(feedback)

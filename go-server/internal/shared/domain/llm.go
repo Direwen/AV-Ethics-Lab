@@ -2,6 +2,19 @@ package domain
 
 import "context"
 
+// Task represents different LLM task types
+type LLMTask string
+
+const (
+	TaskScenario LLMTask = "scenario"
+	TaskFeedback LLMTask = "feedback"
+)
+
+// A marker interface for all LLM clients
+type Client interface {
+	IsLLMClient()
+}
+
 // LLMClient defines the interface for LLM operations
 type LLMClient interface {
 	GenerateScenario(ctx context.Context, req ScenarioLLMRequest) (*ScenarioLLMResponse, error)
@@ -10,6 +23,12 @@ type LLMClient interface {
 // Feedback LLM
 type FeedbackLLMClient interface {
 	GenerateFeedback(ctx context.Context, req FeedbackLLMRequest) (*FeedbackLLMResponse, error)
+}
+
+// LLMPool defines the interface for LLM pool with automatic retry
+type LLMPool interface {
+	Execute(task LLMTask, cb func(client Client) (any, error)) (any, error)
+	Register(task LLMTask, prefix string)
 }
 
 // FeedbackLLMRequest is the request payload for feedback generation

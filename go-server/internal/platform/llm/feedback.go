@@ -18,12 +18,16 @@ var feedbackSystemPrompt string
 var feedbackPromptTemplate string
 
 type FeedbackClient interface {
+	domain.Client
 	GenerateFeedback(ctx context.Context, req domain.FeedbackLLMRequest) (*domain.FeedbackLLMResponse, error)
 }
 
 type feedbackclient struct {
 	model llms.Model
 }
+
+// Implement Client marker interface
+func (c *feedbackclient) IsLLMClient() {}
 
 func newFeedbackClient(model llms.Model) FeedbackClient {
 	return &feedbackclient{model: model}
@@ -44,11 +48,12 @@ func (c *feedbackclient) GenerateFeedback(ctx context.Context, req domain.Feedba
 		return nil, err
 	}
 
-	fmt.Println("========== SYSTEM PROMPT ==========")
-	fmt.Println(feedbackSystemPrompt)
-	fmt.Println("========== USER PROMPT ==========")
-	fmt.Println(promptStr)
-	fmt.Println("===================================")
+	// Debug output
+	// fmt.Println("========== SYSTEM PROMPT ==========")
+	// fmt.Println(feedbackSystemPrompt)
+	// fmt.Println("========== USER PROMPT ==========")
+	// fmt.Println(promptStr)
+	// fmt.Println("===================================")
 
 	// Call LLM
 	res, err := c.model.GenerateContent(

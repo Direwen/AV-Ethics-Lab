@@ -24,15 +24,15 @@ type service struct {
 	repo            Repository
 	sessionService  session.Service
 	templateService template.Service
-	llmClient       domain.LLMClient
+	llmPool         domain.LLMPool
 }
 
-func NewService(repo Repository, sessionService session.Service, templateService template.Service, llmClient domain.LLMClient) Service {
+func NewService(repo Repository, sessionService session.Service, templateService template.Service, llmPool domain.LLMPool) Service {
 	return &service{
 		repo:            repo,
 		sessionService:  sessionService,
 		templateService: templateService,
-		llmClient:       llmClient,
+		llmPool:         llmPool,
 	}
 }
 
@@ -148,20 +148,21 @@ func (s *service) GetNextScenario(ctx context.Context, sessionID uuid.UUID) (*Ge
 	}
 	laneConfig := s.templateService.GetLaneConfig(contextTemplate.Id)
 
-	llmRes, err := s.llmClient.GenerateScenario(
-		ctx,
-		domain.ScenarioLLMRequest{
+	result, err := s.llmPool.Execute(domain.TaskScenario, func(client domain.Client) (any, error) {
+		scenarioClient := client.(domain.LLMClient)
+		return scenarioClient.GenerateScenario(ctx, domain.ScenarioLLMRequest{
 			TemplateName:   contextTemplate.Name,
 			GridDimensions: fmt.Sprintf("%d:%d", contextTemplate.Width, contextTemplate.Height),
 			Factors:        currentFactors,
 			EgoPosition:    tridentSpawn.Coordinate,
 			EgoOrientation: tridentSpawn.Orientation,
 			TridentZones:   tridentZones,
-		},
-	)
+		})
+	})
 	if err != nil {
 		return nil, errors.New("failed to generate scenario")
 	}
+	llmRes := result.(*domain.ScenarioLLMResponse)
 
 	// Add Ego AV entity (fixed position, not from LLM)
 	egoEntity := EnrichedEntity{

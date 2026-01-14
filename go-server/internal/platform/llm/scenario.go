@@ -17,14 +17,17 @@ var scenarioSystemPrompt string
 //go:embed prompts/template.md
 var scenarioPromptTemplate string
 
-// ScenarioClient handles scenario generation
 type ScenarioClient interface {
+	domain.Client
 	GenerateScenario(ctx context.Context, req domain.ScenarioLLMRequest) (*domain.ScenarioLLMResponse, error)
 }
 
 type scenarioClient struct {
 	model llms.Model
 }
+
+// Implement Client marker interface
+func (c *scenarioClient) IsLLMClient() {}
 
 func newScenarioClient(model llms.Model) ScenarioClient {
 	return &scenarioClient{model: model}
@@ -54,11 +57,11 @@ func (c *scenarioClient) GenerateScenario(ctx context.Context, req domain.Scenar
 	}
 
 	// Debug output
-	fmt.Println("========== SYSTEM PROMPT ==========")
-	fmt.Println(scenarioSystemPrompt)
-	fmt.Println("========== USER PROMPT ==========")
-	fmt.Println(promptStr)
-	fmt.Println("===================================")
+	// fmt.Println("========== SYSTEM PROMPT ==========")
+	// fmt.Println(scenarioSystemPrompt)
+	// fmt.Println("========== USER PROMPT ==========")
+	// fmt.Println(promptStr)
+	// fmt.Println("===================================")
 
 	// Call LLM
 	res, err := c.model.GenerateContent(
