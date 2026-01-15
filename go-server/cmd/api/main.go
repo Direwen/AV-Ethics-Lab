@@ -20,6 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/lpernett/godotenv"
+	"strconv"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 
 	if os.Getenv("JWT_SECRET") == "" {
 		log.Fatal("JWT_SECRET is not set")
+	}
+
+	if os.Getenv("EXPERIMENT_TARGET_COUNT") == "" {
+		log.Fatal("Required to set EXPERIMENT_TARGET_COUNT")
 	}
 
 	config.ConnectDB()
@@ -55,9 +60,14 @@ func main() {
 	}
 	log.Println("Templates Loaded")
 
+
 	// Session
+	experimentTargetCount, err := strconv.Atoi(os.Getenv("EXPERIMENT_TARGET_COUNT"))
+	if err != nil {
+		log.Fatal("Failed to convert EXPERIMENT_TARGET_COUNT to int: ", err)
+	}
 	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(sessionRepo, pool)
+	sessionService := session.NewService(sessionRepo, pool, experimentTargetCount)
 	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario
