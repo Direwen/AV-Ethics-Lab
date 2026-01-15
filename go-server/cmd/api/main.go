@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"strconv"
+
 	"github.com/direwen/go-server/internal/config"
 	"github.com/direwen/go-server/internal/dashboard"
 	custommw "github.com/direwen/go-server/internal/middleware"
@@ -20,7 +22,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/lpernett/godotenv"
-	"strconv"
 )
 
 func main() {
@@ -60,7 +61,6 @@ func main() {
 	}
 	log.Println("Templates Loaded")
 
-
 	// Session
 	experimentTargetCount, err := strconv.Atoi(os.Getenv("EXPERIMENT_TARGET_COUNT"))
 	if err != nil {
@@ -91,7 +91,6 @@ func main() {
 
 	// Init Echo
 	e := echo.New()
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.HTTPErrorHandler = util.CustomEchoErrorHandler
