@@ -316,12 +316,18 @@ const kpiCards = computed(() => {
 // Donut Chart
 const outcomeChartData = computed(() => {
   if (!dashboardData.value?.least_harmful_outcome) return { labels: [], datasets: [] }
+  
   const outcome = dashboardData.value.least_harmful_outcome
+  
+  // Combine Left + Right into a single "Swerve" metric
+  const totalSwerve = (outcome.swerve_left || 0) + (outcome.swerve_right || 0)
+  
   return {
-    labels: ['Maintain Course', 'Swerve Left', 'Swerve Right'],
+    labels: ['Maintain (Inaction)', 'Swerve (Action)'],
     datasets: [{
-      data: [outcome.maintain, outcome.swerve_left, outcome.swerve_right],
-      backgroundColor: [colors.value.primary, colors.value.accent, colors.value.info],
+      data: [outcome.maintain, totalSwerve],
+      // Use distinct colors: One for "Passive", one for "Active"
+      backgroundColor: [colors.value.accent, colors.value.primary], 
       borderColor: 'transparent',
       hoverOffset: 4
     }]
