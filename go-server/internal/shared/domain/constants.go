@@ -63,9 +63,6 @@ var (
 	Speeds         = []Speed{SpeedLow, SpeedMedium, SpeedHigh}
 )
 
-// Experiment Target Count
-const ExperimentTargetCount = 2
-
 // Direction constants for lane config
 type Direction string
 

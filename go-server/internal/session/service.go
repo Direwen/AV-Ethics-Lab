@@ -25,12 +25,14 @@ type Service interface {
 type service struct {
 	repo    Repository
 	llmPool domain.LLMPool
+	experimentTargetCount int
 }
 
-func NewService(repo Repository, llmPool domain.LLMPool) Service {
+func NewService(repo Repository, llmPool domain.LLMPool, experimentTargetCount int) Service {
 	return &service{
 		repo:    repo,
 		llmPool: llmPool,
+		experimentTargetCount: experimentTargetCount,
 	}
 }
 
@@ -45,7 +47,7 @@ func (s *service) RegisterSession(ctx context.Context, input CreateSessionInput)
 		return "", err
 	}
 
-	experimentPlan := domain.GenerateBalancedDesign(domain.ExperimentTargetCount)
+	experimentPlan := domain.GenerateBalancedDesign(s.experimentTargetCount)
 	planInJSON, err := json.Marshal(experimentPlan)
 	if err != nil {
 		return "", err

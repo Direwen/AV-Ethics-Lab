@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"strconv"
+
 	"github.com/direwen/go-server/internal/config"
 	"github.com/direwen/go-server/internal/dashboard"
 	custommw "github.com/direwen/go-server/internal/middleware"
@@ -29,6 +31,10 @@ func main() {
 
 	if os.Getenv("JWT_SECRET") == "" {
 		log.Fatal("JWT_SECRET is not set")
+	}
+
+	if os.Getenv("EXPERIMENT_TARGET_COUNT") == "" {
+		log.Fatal("Required to set EXPERIMENT_TARGET_COUNT")
 	}
 
 	config.ConnectDB()
@@ -56,8 +62,12 @@ func main() {
 	log.Println("Templates Loaded")
 
 	// Session
+	experimentTargetCount, err := strconv.Atoi(os.Getenv("EXPERIMENT_TARGET_COUNT"))
+	if err != nil {
+		log.Fatal("Failed to convert EXPERIMENT_TARGET_COUNT to int: ", err)
+	}
 	sessionRepo := session.NewRepository(db)
-	sessionService := session.NewService(sessionRepo, pool)
+	sessionService := session.NewService(sessionRepo, pool, experimentTargetCount)
 	sessionHandler := session.NewHandler(sessionService)
 
 	// Scenario
@@ -81,7 +91,6 @@ func main() {
 
 	// Init Echo
 	e := echo.New()
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.HTTPErrorHandler = util.CustomEchoErrorHandler
