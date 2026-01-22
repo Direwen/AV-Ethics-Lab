@@ -1,35 +1,32 @@
-@startuml ERD
+@startuml
+!theme plain
+hide circle
+skinparam entityStyle rectangle
 
-!define TABLE(x) entity x << (T,#FFAAAA) >>
-
-skinparam linetype ortho
-skinparam roundcorner 10
-skinparam shadowing false
-
-TABLE(sessions) {
-  * id : uuid <<PK>>
+' --- Entities ---
+entity "Session" as Session {
+  * id : uuid
   --
-  fingerprint : varchar(255)
-  is_duplicate : boolean
-  self_reported_new : boolean
-  age_range : smallint
-  gender : smallint
-  country : varchar(10)
-  occupation : varchar(50)
-  driving_experience : smallint
+  fingerprint : varchar
+  is_duplicate : bool
+  self_reported_new : bool
+  age_range : int
+  gender : int
+  country : varchar
+  occupation : varchar
+  driving_experience : int
   status : smallint
   expires_at : timestamp
   experiment_plan : jsonb
   feedback : jsonb
   created_at : timestamp
   updated_at : timestamp
-  deleted_at : timestamp
 }
 
-TABLE(context_templates) {
-  * id : uuid <<PK>>
+entity "ContextTemplate" as ContextTemplate {
+  * id : uuid
   --
-  name : varchar
+  name : string
   width : int
   height : int
   grid_data : jsonb
@@ -37,14 +34,13 @@ TABLE(context_templates) {
   meta : jsonb
   created_at : timestamp
   updated_at : timestamp
-  deleted_at : timestamp
 }
 
-TABLE(scenarios) {
-  * id : uuid <<PK>>
+entity "Scenario" as Scenario {
+  * id : uuid
   --
-  * context_template_id : uuid <<FK>>
-  * session_id : uuid <<FK>>
+  context_template_id : uuid
+  session_id : uuid
   entities : jsonb
   factors : jsonb
   dilemma_options : jsonb
@@ -53,46 +49,22 @@ TABLE(scenarios) {
   started_at : timestamp
   created_at : timestamp
   updated_at : timestamp
-  deleted_at : timestamp
 }
 
-TABLE(responses) {
-  * id : uuid <<PK>>
+entity "Response" as Response {
+  * id : uuid
   --
-  * scenario_id : uuid <<FK>> <<UNIQUE>>
+  scenario_id : uuid (unique)
   ranking_order : jsonb
-  is_timeout : boolean
-  has_interacted : boolean
-  response_time_ms : bigint
+  is_timeout : bool
+  has_interacted : bool
+  response_time_ms : int64
   created_at : timestamp
   updated_at : timestamp
-  deleted_at : timestamp
 }
 
-sessions ||--o{ scenarios : "has many"
-context_templates ||--o{ scenarios : "has many"
-scenarios ||--o| responses : "has one"
-
-note right of sessions
-  Session tracks participant
-  demographics and experiment
-  plan. Status: Active, Completed,
-  Expired, Abandoned
-end note
-
-note right of scenarios
-  Each scenario contains:
-  - Entity placements (JSON)
-  - Environmental factors
-  - Dilemma options
-  - Trident spawn point
-end note
-
-note right of responses
-  Response captures:
-  - Ranked action preferences
-  - Response time
-  - Timeout/interaction flags
-end note
-
+' --- Relationships ---
+Session ||--o{ Scenario : "has"
+ContextTemplate ||--o{ Scenario : "template_of"
+Scenario ||--|| Response : "has"
 @enduml

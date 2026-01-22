@@ -13,9 +13,9 @@ Frontend -> Frontend: Generate Fingerprint (FingerprintJS)
 User -> Frontend: Fill Consent & Demographics Form
 Frontend -> API: POST /api/v1/sessions\n{ demographics, fingerprint, self_reported_new }
 API -> DB: Check if fingerprint exists
-API -> DB: Generate Balanced Experiment Plan
+API: Generate Balanced Experiment Plan (in-memory)
 API -> DB: Create Session Record
-API -> API: Generate JWT Token
+API -> API: Generate JWT Token (claims: id, issuer)
 API -> Frontend: Return { token }
 Frontend -> Frontend: Store token in cookie
 
@@ -30,8 +30,7 @@ end
 loop For each scenario in experiment plan
     Frontend -> API: GET /api/v1/scenarios/next\n(Authorization: Bearer token)
     API -> DB: Validate Session & Token
-    API -> DB: Check for pending scenario
-    
+API -> API: Check session progress (returns 409 Conflict if experiment completed)
     alt Pending Scenario Exists
         API -> DB: Update started_at timestamp
         API -> DB: Load scenario data
