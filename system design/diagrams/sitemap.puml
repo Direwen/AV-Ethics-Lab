@@ -6,55 +6,55 @@ skinparam rectangle {
   BackgroundColor<<optional>> LightYellow
 }
 
-title Frontend Site Map - AV Ethics Lab
+title Frontend Site Map - AV Ethics Lab (reflects routes & middleware)
 
 rectangle "/ (Home)" <<public>> as home
 rectangle "/dashboard" <<public>> as dashboard
-rectangle "/guide" <<optional>> as guide
 rectangle "/playground" <<public>> as playground
+rectangle "/guide" <<optional>> as guide
 
 package "/experiment" {
   rectangle "/experiment/consent" <<guest>> as consent
-  rectangle "/experiment (Index)" <<protected>> as experiment
+  rectangle "/experiment" <<protected>> as experiment
 }
 
 rectangle "/thank-you" <<protected>> as thankyou
 
+' Primary flows
 home --> consent : Start Experiment
 consent --> guide : First Time User
 consent --> experiment : Returning User
 guide --> experiment : Complete Guide
 experiment --> thankyou : All Scenarios Complete
 thankyou --> home : Return Home
+experiment --> home : Quit Experiment (clears token)
 
-home --> dashboard : View Stats
+home --> dashboard : View Public Stats
 home --> playground : Test Interface
 
-note right of home
-  Public Routes
-  - Home page with project info
-  - Dashboard with public stats
-  - Playground for testing
-end note
-
+' Middleware & Redirects
 note right of consent
-  Guest Routes
-  - Consent & demographics form
-  - Creates session & JWT token
+  Guest Route (uses `session` middleware):
+  - If token exists -> redirect to /experiment (prevent creating duplicate sessions)
+  - Submitting consent creates session and JWT token
 end note
 
 note right of experiment
-  Protected Routes
-  - Requires valid JWT token
-  - Session middleware validates
-  - Redirects to / if no token
+  Protected Route (uses `session` middleware):
+  - Requires session token cookie (`session_token`)
+  - If no token -> redirect to /
+  - Access to /scenarios and response submission requires valid token
 end note
 
 note right of guide
-  Optional Route
-  - Shown to first-time users
-  - Tutorial on how to use simulator
-  - Can be skipped by returning users
+  Optional Route (uses `guide` middleware):
+  - Only accessible if user has token and `canAccessGuide=true` in store
+  - Returning users are redirected to /experiment
+end note
+
+note right of thankyou
+  - Fetches feedback from API on mount
+  - Clears session token after feedback is shown
 end note
 
 legend left

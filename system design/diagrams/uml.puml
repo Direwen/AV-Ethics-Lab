@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+left to right direction
+skinparam usecase {
+  BackgroundColor #EFEFEF
+  BorderColor #333333
+  ArrowColor #333333
+}
+
+actor "Participant" as User
+actor "LLM Service" as LLM <<External System>>
+
+rectangle "AV Ethics Lab System" {
+  ' Core Session Logic
+  usecase "Start Experiment" as UC_Start
+  usecase "Create Anonymous Session" as UC_CreateSession
+  usecase "Complete Tutorial" as UC_Guide
+
+  ' Scenario Loop
+  usecase "Play Scenario" as UC_Play
+  usecase "Generate Scenario" as UC_GenScenario
+  usecase "Rank Actions" as UC_Rank
+  usecase "Validate Timer" as UC_Timer
+
+  ' Post-Experiment
+  usecase "View Personal Feedback" as UC_Feedback
+  usecase "Analyze User Archetype" as UC_Analyze
+  usecase "View Global Dashboard" as UC_Dashboard
+}
+
+' Primary Actor Connections
+User --> UC_Start
+User --> UC_Guide
+User --> UC_Play
+User --> UC_Rank
+User --> UC_Feedback
+User --> UC_Dashboard
+
+' Secondary Actor Connections (System calls these)
+UC_GenScenario --> LLM : <<uses>>
+UC_Analyze --> LLM : <<uses>>
+
+' Include Relationships (Dependencies)
+UC_Start ..> UC_CreateSession : <<include>>
+UC_Play ..> UC_GenScenario : <<include>>
+UC_Rank ..> UC_Timer : <<include>>
+UC_Feedback ..> UC_Analyze : <<include>>
+@enduml

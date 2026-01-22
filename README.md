@@ -159,19 +159,66 @@ This project was created to address that gap by providing a controlled but reali
 5. **Environment Variables**
 
    **Backend (.env in go-server/)**
+
+   The backend uses environment variables for configuration. Create a `.env` or `.env.local` file in the `go-server/` folder for local development (do **not** commit your secrets).
+
+   Example `.env.local` (recommended keys):
    ```env
-   DATABASE_URL=postgres://user:password@localhost:5432/av_ethics_db
-   JWT_SECRET=your-secret-key-here
-   SERVER_PORT=:8080
-   LOCAL_FRONTEND_PORT=3000
+   SERVER_PORT=:8080               # e.g., :8080
+   CLIENT_URL=http://localhost:3000
+
+   DB_HOST=localhost
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   DB_NAME=av_ethics_db
+   DB_PORT=5432
+   DB_SSLMODE=disable
+   # or use DATABASE_URL=postgres://user:pass@host:port/dbname
+
+   JWT_SECRET=your-secret-key
+   TOKEN_EXPIRATION=1h
    SESSION_EXPIRATION=4h
-   GROQ_API_KEY=your-groq-api-key
-   OPENROUTER_API_KEY=your-openrouter-api-key
-   TRIDENT_ZONE_DISTANCE=3
-   TRIDENT_ZONE_DEPTH=3
+   LOCAL_FRONTEND_PORT=3000
+
    BACKGROUND_ENTITIES_MIN=2
    BACKGROUND_ENTITIES_MAX=4
+   TRIDENT_ZONE_DISTANCE=3
+   TRIDENT_ZONE_DEPTH=3
+   EXPERIMENT_TARGET_COUNT=5
+
+   LLM_MODEL=gpt-4o-mini
+
+   SCENARIO_MODEL=gpt-4o-mini
+   SCENARIO_PROVIDER=groq
+
+   FEEDBACK_MODEL=gpt-4o-mini
+   FEEDBACK_PROVIDER=openrouter
+
+   GROQ_API_KEY=your-groq-api-key
+   GROQ_API_KEY_1=
+   GROQ_API_KEY_2=
+   GROQ_API_KEY_3=
+
+   OPENROUTER_API_KEY=your-openrouter-api-key
+   OPENROUTER_API_KEY_1=
+   OPENROUTER_API_KEY_2=
+   OPENROUTER_API_KEY_3=
+   OPENROUTER_API_KEY_4=
+
+   # Timer config (in milliseconds)
+   TIMER_DURATION_MS=20000
+   NETWORK_BUFFER_MS=3000
    ```
+
+   Notes & guidance:
+   - API keys: The server supports rotating multiple API keys for each provider (e.g., `GROQ_API_KEY`, `GROQ_API_KEY_1`, ...). Keys will be used in a round-robin pool (useful for free-tier keys or rate limiting).
+   - Providers & models: Set `SCENARIO_PROVIDER` / `FEEDBACK_PROVIDER` to the provider you want to use (`groq`, `openrouter`, etc.) and `SCENARIO_MODEL` / `FEEDBACK_MODEL` to the model name. This implementation is designed to work with free/low-cost models—use `LLM_MODEL` for a global default.
+   - Session & token settings: `SESSION_EXPIRATION` and `TOKEN_EXPIRATION` control session lifetime and JWT expiry.
+   - Timeouts: `TIMER_DURATION_MS` and `NETWORK_BUFFER_MS` control frontend timer behavior and server-side validation buffer.
+   - Database: You can either use individual DB_* variables or a single `DATABASE_URL` (Postgres DSN). The Docker Compose stack uses environment variables from `go-server/.env.local` if present.
+   - Security: Never commit API keys or secrets. Add `go-server/.env.local` to `.gitignore` (it already is in our repo patterns).
+
+   Optional: Would you like me to add a `go-server/.env.example` file with these defaults to the repo? It could help onboarding new contributors.
 
    **Frontend (nuxt.config.ts)**
    ```typescript
@@ -284,13 +331,15 @@ This ensures no completely safe option exists, forcing meaningful ethical choice
 
 ## 📊 System Design Diagrams
 
-For detailed architecture documentation, see the [System Design Diagrams](system%20design/diagrams/):
+For detailed architecture documentation, see the **System Design Diagrams** directory: [system design/diagrams](system%20design/diagrams/).
 
-- **[Entity Relationship Diagram (ERD)](system%20design/diagrams/erd.puml)**: Database schema and relationships between sessions, scenarios, responses, and templates
-- **[Site Map](system%20design/diagrams/sitemap.puml)**: Frontend routing structure showing public, guest, protected, and optional routes
-- **[Sequence Diagram](system%20design/diagrams/sequence.puml)**: Complete experiment flow from session creation through scenario generation, response submission, and feedback generation
+Available diagrams (PlantUML files) include:
+- **Entity Relationship Diagram (ERD)** — Database schema and relationships between sessions, scenarios, responses, and templates
+- **Site Map** — Frontend routing structure (public, guest, protected, optional routes)
+- **Sequence Diagram** — Complete experiment flows (session creation, scenario generation, response submission, feedback generation)
+- **Use Case Diagram** and **State Diagram** — Additional behavioral and state representations may be present
 
-> **Note**: These diagrams are written in PlantUML format. To view them, use a PlantUML renderer (VS Code extension, online server, or CLI tool).
+> **Note**: These files are PlantUML diagrams. To view or export them, use a PlantUML renderer (VS Code PlantUML extension, online PlantUML server, or the PlantUML CLI).
 
 ## 📸 Screenshots
 
